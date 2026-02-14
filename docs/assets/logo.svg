@@ -1,13 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 847 847" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:1.5;">
+    <defs>
+        <filter id="circle-glow" filterUnits="objectBoundingBox"
+                x="-0.4" y="-0.4" width="1.8" height="1.8">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8"/>
+        </filter>
+        <filter id="edge-glow" filterUnits="objectBoundingBox"
+                x="-0.4" y="-0.4" width="1.8" height="1.8">
+            <feFlood flood-color="white" flood-opacity="1" result="white"/>
+            <feComposite in="white" in2="SourceAlpha" operator="in" result="whiteShape"/>
+            <feGaussianBlur in="whiteShape" stdDeviation="8" result="glow1"/>
+            <feComposite in="glow1" in2="glow1" operator="arithmetic" k1="0" k2="2" k3="0" k4="0" result="glow"/>
+            <feMerge>
+                <feMergeNode in="glow"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
     <g transform="matrix(1,0,0,1,-106.666,-106.666)">
         <g id="Pictogram" transform="matrix(3.76031,0,0,3.77707,-2628.74,-259.928)">
             <g>
-                <g transform="matrix(0.320956,0,0,0.319533,669.912,39.7856)">
-                    <circle cx="530" cy="530" r="290" style="fill:white;"/>
-                </g>
-                <g transform="matrix(0.320956,0,0,0.319533,669.912,39.7856)">
+                <g transform="matrix(0.320956,0,0,0.319533,669.912,39.7856)" filter="url(#circle-glow)">
                     <circle cx="530" cy="530" r="290" style="fill:white;"/>
                 </g>
                 <g transform="matrix(0.265935,0,0,0.264756,699.073,68.8175)">
@@ -19,11 +33,11 @@
                 <g transform="matrix(0.209823,0,0,0.208893,728.861,98.4949)">
                     <circle cx="530.857" cy="531.254" r="369.143" style="fill:none;stroke:rgb(189,186,89);stroke-width:72.67px;"/>
                 </g>
-                <g transform="matrix(0.265935,0,0,0.264756,699.073,68.8175)">
+                <g transform="matrix(0.265935,0,0,0.264756,699.073,68.8175)" filter="url(#edge-glow)">
                     <path d="M530.429,465L530.429,735M269.629,394.881L269.629,664.881M791.229,395.119L791.229,665.119M529.571,465L790.371,395.119M269.629,394.881L530.429,325M530.429,735L791.229,665.119M529.571,464.881L268.771,395M791.229,394.881L530.429,325M530.429,734.881L269.629,665" style="fill:rgb(87,102,127);stroke:black;stroke-width:57.33px;"/>
                 </g>
             </g>
-            <g transform="matrix(0.265935,0,0,0.264756,699.073,68.8175)">
+            <g transform="matrix(0.265935,0,0,0.264756,699.073,68.8175)" filter="url(#edge-glow)">
                 <path d="M530.429,465L530.429,735M269.629,394.881L269.629,664.881M791.229,395.119L791.229,665.119M529.571,465L790.371,395.119M269.629,394.881L530.429,325M530.429,735L791.229,665.119M529.571,464.881L268.771,395M791.229,394.881L530.429,325M530.429,734.881L269.629,665" style="fill:rgb(87,102,127);stroke:black;stroke-width:57.33px;"/>
             </g>
         </g>
