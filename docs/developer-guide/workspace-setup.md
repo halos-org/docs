@@ -14,13 +14,13 @@ With this setup, tasks that would otherwise require navigating multiple config f
 - *"Fix the search filtering in cockpit-apt"* -- Claude navigates the three-tier architecture, writes the fix, adds tests, and creates a PR
 - *"Why is the Grafana OIDC login failing?"* -- Claude checks the SSO config, Docker labels, prestart script, and Authelia client registration
 
-For practical tips on working with AI assistants, see [Life with Claude](https://github.com/hatlabs/halos-distro/blob/main/docs/LIFE_WITH_CLAUDE.md) in the workspace.
+For practical tips on working with AI assistants, see [Life with Claude](https://github.com/halos-org/halos-distro/blob/main/docs/LIFE_WITH_CLAUDE.md) in the workspace.
 
 ## Clone the Workspace
 
 ```bash
 # Clone the workspace repository
-git clone https://github.com/hatlabs/halos-distro.git
+git clone https://github.com/halos-org/halos-distro.git
 cd halos-distro
 
 # Clone all component repositories

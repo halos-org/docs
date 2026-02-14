@@ -135,5 +135,5 @@ If you've forgotten the new hostname, find the device by:
 
 ## Getting help
 
-- **[GitHub Discussions](https://github.com/hatlabs/halos-distro/discussions)** — Ask questions and share ideas with the community
-- **[GitHub Issues](https://github.com/hatlabs/halos-distro/issues)** — Report bugs or request features
+- **[GitHub Discussions](https://github.com/halos-org/halos-distro/discussions)** — Ask questions and share ideas with the community
+- **[GitHub Issues](https://github.com/halos-org/halos-distro/issues)** — Report bugs or request features

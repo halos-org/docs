@@ -59,6 +59,6 @@ These images include HALPI2 drivers but **not** the HaLOS web stack (no Traefik,
 
 ## Download
 
-All images are available on the [HaLOS releases page](https://github.com/hatlabs/halos-pi-gen/releases/latest).
+All images are available on the [HaLOS releases page](https://github.com/halos-org/halos-pi-gen/releases/latest).
 
 Once you've chosen your image, proceed to [Quick Start](quick-start.md#2-flash-the-image) for flashing instructions, or [First Boot](first-boot.md) for what happens next.

@@ -22,7 +22,7 @@ APT package manager interface for Cockpit. Appears as **Packages** in the sideba
 
 | Property | Value |
 |----------|-------|
-| Repository | [cockpit-apt](https://github.com/hatlabs/cockpit-apt) |
+| Repository | [cockpit-apt](https://github.com/halos-org/cockpit-apt) |
 | Sidebar name | Packages |
 | Tech stack | Python backend + React/TypeScript frontend |
 
@@ -48,7 +48,7 @@ Container app store interface. Appears as **Container Apps** in the sidebar.
 
 | Property | Value |
 |----------|-------|
-| Repository | [cockpit-container-apps](https://github.com/hatlabs/cockpit-container-apps) |
+| Repository | [cockpit-container-apps](https://github.com/halos-org/cockpit-container-apps) |
 | Sidebar name | Container Apps |
 
 ### Features
@@ -69,7 +69,7 @@ Docker container manager for Cockpit.
 
 | Property | Value |
 |----------|-------|
-| Repository | [cockpit-dockermanager-debian](https://github.com/hatlabs/cockpit-dockermanager-debian) |
+| Repository | [cockpit-dockermanager-debian](https://github.com/halos-org/cockpit-dockermanager-debian) |
 
 ### Features
 
@@ -84,7 +84,7 @@ Authelia user management module for Cockpit.
 
 | Property | Value |
 |----------|-------|
-| Repository | [cockpit-authelia-users](https://github.com/hatlabs/cockpit-authelia-users) |
+| Repository | [cockpit-authelia-users](https://github.com/halos-org/cockpit-authelia-users) |
 
 ### Features
 
@@ -103,7 +103,7 @@ Cockpit branding and configuration for HaLOS.
 
 | Property | Value |
 |----------|-------|
-| Repository | [halos-cockpit-config](https://github.com/hatlabs/halos-cockpit-config) |
+| Repository | [halos-cockpit-config](https://github.com/halos-org/halos-cockpit-config) |
 
 ### Purpose
 
