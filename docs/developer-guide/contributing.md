@@ -4,9 +4,11 @@ Contributions to HaLOS are welcome. Each component repository accepts pull reque
 
 ## Getting Started
 
-1. Set up the [development workspace](workspace-setup.md)
+1. Set up the [development workspace](workspace-setup.md) -- this also sets up the AI-assisted workflow
 2. Read the [development workflow](development-workflow.md)
 3. Find an issue to work on in the relevant repository
+
+If you're using Claude Code or a similar AI assistant, you can ask it to survey open issues across repositories and suggest what to work on next.
 
 ## Reporting Issues
 

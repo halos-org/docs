@@ -1,6 +1,33 @@
 # Workspace Setup
 
-HaLOS development uses a central workspace repository (`halos-distro`) that brings together all component repositories. This provides full context across the entire system.
+HaLOS development uses a central workspace repository (`halos-distro`) that brings together all component repositories. This workspace is designed from the ground up for AI-assisted development.
+
+## AI-First Development
+
+The recommended way to develop for HaLOS is with an AI coding assistant like [Claude Code](https://docs.anthropic.com/en/docs/claude-code). The workspace structure, documentation, and `AGENTS.md` files are optimized for this workflow.
+
+**Always work from the `halos-distro` workspace root** -- this gives the assistant full context across all repositories, enabling it to understand cross-cutting concerns, follow established patterns, and produce consistent code.
+
+With this setup, tasks that would otherwise require navigating multiple config formats and conventions become straightforward conversations:
+
+- *"Add a new marine container app for yacht-radar"* -- Claude reads the existing apps, follows the conventions, and produces the full set of files
+- *"Fix the search filtering in cockpit-apt"* -- Claude navigates the three-tier architecture, writes the fix, adds tests, and creates a PR
+- *"Why is the Grafana OIDC login failing?"* -- Claude checks the SSO config, Docker labels, prestart script, and Authelia client registration
+
+For practical tips on working with AI assistants, see [Life with Claude](https://github.com/hatlabs/halos-distro/blob/main/docs/LIFE_WITH_CLAUDE.md) in the workspace.
+
+## Clone the Workspace
+
+```bash
+# Clone the workspace repository
+git clone https://github.com/hatlabs/halos-distro.git
+cd halos-distro
+
+# Clone all component repositories
+./run repos:clone
+```
+
+This clones all HaLOS repositories into the workspace directory. Each repository is independent -- there are no git submodules.
 
 ## Prerequisites
 
@@ -17,19 +44,6 @@ Language-specific tools are needed only for the repositories you work on:
 | Cockpit modules | Node.js 18+, npm |
 | mDNS publisher, Homarr adapter | Rust (via Docker -- no local install needed) |
 | Pi-gen image builder | Docker only |
-
-## Clone the Workspace
-
-```bash
-# Clone the workspace repository
-git clone https://github.com/hatlabs/halos-distro.git
-cd halos-distro
-
-# Clone all component repositories
-./run repos:clone
-```
-
-This clones all HaLOS repositories into the workspace directory. Each repository is independent -- there are no git submodules.
 
 ## Update Repositories
 
@@ -107,15 +121,3 @@ git push -u origin feat/my-feature
 ```
 
 See [Development Workflow](development-workflow.md) for the full process.
-
-## AI-Assisted Development
-
-The workspace is designed for effective use with AI coding assistants like Claude Code. Always work from the `halos-distro` workspace root -- this gives the assistant full context across all repositories.
-
-Key context files:
-
-- `AGENTS.md` -- Central workspace documentation (automatically loaded)
-- `docs/DEVELOPMENT_WORKFLOW.md` -- Implementation workflow
-- `docs/IMPLEMENTATION_CHECKLIST.md` -- Pre-implementation checklist
-- `docs/LIFE_WITH_CLAUDE.md` -- Tips for working with AI assistants
-- Each repository's `AGENTS.md` -- Repository-specific context

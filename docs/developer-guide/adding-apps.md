@@ -1,10 +1,16 @@
 # Adding Apps
 
-This guide walks through creating a new container application for HaLOS.
+This guide covers creating a new container application for HaLOS.
 
-## Overview
+## The Quick Way: Ask Claude
 
-A container app is defined by a small set of files that describe the Docker service, package metadata, and routing configuration. The `container-packaging-tools` package then converts this definition into a Debian package.
+If you're working with Claude Code from the `halos-distro` workspace (see [Workspace Setup](workspace-setup.md)), adding an app is a conversation:
+
+> *"Add a new marine container app called yacht-radar. It uses the image `example/yacht-radar:2.1.0`, has a web UI on port 8080, and should use forward auth. Put it in the navigation category."*
+
+Claude reads the existing apps in `halos-marine-containers/apps/`, follows the established patterns, and produces the complete set of files: `metadata.yaml`, `docker-compose.yml`, icon, and configuration. It handles the conventions documented below -- auth modes, Traefik labels, tag taxonomy, volume paths -- without you needing to look them up.
+
+This works because the workspace has rich context: every existing app serves as an example, and each repository's `AGENTS.md` documents the conventions. The rest of this page documents those conventions for reference.
 
 ## App Structure
 
