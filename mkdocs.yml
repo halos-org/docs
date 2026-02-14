@@ -1,0 +1,105 @@
+site_name: HaLOS Documentation
+site_url: https://docs.halos.fi
+site_description: Documentation for HaLOS, a container-first operating system for Raspberry Pi
+site_author: Hat Labs
+
+repo_url: https://github.com/halos-org/docs
+repo_name: halos-org/docs
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.action.edit
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/hatlabs
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quick Start: getting-started/quick-start.md
+    - Choosing an Image: getting-started/choosing-an-image.md
+    - First Boot: getting-started/first-boot.md
+    - Installing on Existing OS: getting-started/installing-on-existing-os.md
+  - User Guide:
+    - Web Interface: user-guide/web-interface.md
+    - Dashboard: user-guide/dashboard.md
+    - System Management: user-guide/system-management.md
+    - Installing Apps: user-guide/installing-apps.md
+    - Marine Apps: user-guide/marine-apps.md
+    - Networking: user-guide/networking.md
+    - Troubleshooting: user-guide/troubleshooting.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Single Sign-On: architecture/sso.md
+    - Reverse Proxy: architecture/reverse-proxy.md
+    - Dashboard Integration: architecture/dashboard.md
+    - Package System: architecture/package-system.md
+  - Developer Guide:
+    - Workspace Setup: developer-guide/workspace-setup.md
+    - Development Workflow: developer-guide/development-workflow.md
+    - Adding Apps: developer-guide/adding-apps.md
+    - Building Images: developer-guide/building-images.md
+    - Contributing: developer-guide/contributing.md
+  - Reference:
+    - Container Metadata: reference/container-metadata.md
+    - Core Containers: reference/core-containers.md
+    - Marine Containers: reference/marine-containers.md
+    - Cockpit Modules: reference/cockpit-modules.md
+    - mDNS Publisher: reference/mdns-publisher.md
+  - Appendices:
+    - Roadmap: appendices/roadmap.md
+    - FAQ: appendices/faq.md

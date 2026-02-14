@@ -1,0 +1,9 @@
+[project]
+name = "halos-docs"
+version = "0.1.0"
+description = "HaLOS documentation site"
+requires-python = ">=3.11"
+dependencies = [
+    "mkdocs-material>=9.5",
+    "mkdocs-with-pdf>=0.9",
+]
