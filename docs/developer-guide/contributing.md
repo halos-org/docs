@@ -14,14 +14,14 @@ If you're using Claude Code or a similar AI assistant, you can ask it to survey 
 
 Report bugs and feature requests on the appropriate GitHub repository:
 
-- **General / cross-cutting**: [halos-distro](https://github.com/hatlabs/halos-distro/issues)
-- **Image builds**: [halos-pi-gen](https://github.com/hatlabs/halos-pi-gen/issues)
-- **Package manager UI**: [cockpit-apt](https://github.com/hatlabs/cockpit-apt/issues)
-- **Container app store**: [cockpit-container-apps](https://github.com/hatlabs/cockpit-container-apps/issues)
-- **Container packaging tools**: [container-packaging-tools](https://github.com/hatlabs/container-packaging-tools/issues)
-- **Marine apps**: [halos-marine-containers](https://github.com/hatlabs/halos-marine-containers/issues)
-- **mDNS publisher**: [halos-mdns-publisher](https://github.com/hatlabs/halos-mdns-publisher/issues)
-- **Dashboard adapter**: [homarr-container-adapter](https://github.com/hatlabs/homarr-container-adapter/issues)
+- **General / cross-cutting**: [halos-distro](https://github.com/halos-org/halos-distro/issues)
+- **Image builds**: [halos-pi-gen](https://github.com/halos-org/halos-pi-gen/issues)
+- **Package manager UI**: [cockpit-apt](https://github.com/halos-org/cockpit-apt/issues)
+- **Container app store**: [cockpit-container-apps](https://github.com/halos-org/cockpit-container-apps/issues)
+- **Container packaging tools**: [container-packaging-tools](https://github.com/halos-org/container-packaging-tools/issues)
+- **Marine apps**: [halos-marine-containers](https://github.com/halos-org/halos-marine-containers/issues)
+- **mDNS publisher**: [halos-mdns-publisher](https://github.com/halos-org/halos-mdns-publisher/issues)
+- **Dashboard adapter**: [homarr-container-adapter](https://github.com/halos-org/homarr-container-adapter/issues)
 
 When reporting a bug, include:
 
@@ -72,6 +72,6 @@ See [Development Workflow](development-workflow.md) for the full process.
 
 ## Communication
 
-- **Discussions**: [GitHub Discussions](https://github.com/hatlabs/halos-distro/discussions) for questions, ideas, and general conversation
+- **Discussions**: [GitHub Discussions](https://github.com/halos-org/halos-distro/discussions) for questions, ideas, and general conversation
 - **Issues**: For specific bugs and feature requests
 - **Pull Requests**: For code contributions

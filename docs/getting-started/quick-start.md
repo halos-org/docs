@@ -12,7 +12,7 @@ Get HaLOS running on your Raspberry Pi in under five minutes.
 
 ## 1. Download the image
 
-Download your preferred image from the [HaLOS releases page](https://github.com/hatlabs/halos-pi-gen/releases/latest).
+Download your preferred image from the [HaLOS releases page](https://github.com/halos-org/halos-pi-gen/releases/latest).
 
 Not sure which image to pick? See [Choosing an Image](choosing-an-image.md). For a generic Raspberry Pi without marine needs, start with **`Halos-RPI`**.
 

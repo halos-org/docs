@@ -8,7 +8,7 @@ The fastest way to work on HaLOS is with Claude Code from the `halos-distro` wor
 
 > *"Work on cockpit-apt issue #12. Follow the development workflow."*
 
-Claude creates a feature branch, writes the code and tests, runs CI-matching checks locally via pre-commit hooks, and prepares a PR -- following the conventions documented below. For details on working effectively with AI assistants, see [Life with Claude](https://github.com/hatlabs/halos-distro/blob/main/docs/LIFE_WITH_CLAUDE.md).
+Claude creates a feature branch, writes the code and tests, runs CI-matching checks locally via pre-commit hooks, and prepares a PR -- following the conventions documented below. For details on working effectively with AI assistants, see [Life with Claude](https://github.com/halos-org/halos-distro/blob/main/docs/LIFE_WITH_CLAUDE.md).
 
 The rest of this page documents the conventions that Claude (and human developers) follow.
 
