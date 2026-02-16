@@ -46,7 +46,11 @@ HaLOS images are built along three axes: **hardware platform**, **desktop enviro
 
 ### Access point variant
 
-- **`Halos-Desktop-Marine-HALPI2-AP`** — Same as `Halos-Desktop-Marine-HALPI2` but with a WiFi access point pre-configured. Use this when you don't have wired Ethernet for initial setup — the device creates a WiFi network named `Halos-XXXX` (password: `halos1234`) that you can connect to immediately.
+All headless images include a built-in WiFi access point for initial setup without Ethernet. On first boot, the device creates a WiFi network named **`Halos-XXXX`** (XXXX is unique to your device, password: **`halos1234`**) that you can connect to immediately.
+
+For desktop images, only one variant includes the access point:
+
+- **`Halos-Desktop-Marine-HALPI2-AP`** — Same as `Halos-Desktop-Marine-HALPI2` but with the WiFi access point pre-configured.
 
 ### Stock Raspberry Pi OS variants
 

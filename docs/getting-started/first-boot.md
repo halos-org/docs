@@ -25,9 +25,18 @@ The total time from power-on to a working web interface is typically **2–3 min
 
 mDNS (`.local` hostname resolution) works on most operating systems out of the box. If `halos.local` doesn't resolve, check your router's DHCP client list for the device's IP address and use that instead.
 
-### Option 2: WiFi access point (AP images only)
+### Option 2: Desktop WiFi (Desktop images with a display)
 
-If you're using an [AP image variant](choosing-an-image.md#access-point-variant), the device creates a local WiFi hotspot — but this hotspot does **not** provide internet access. You need to configure a WiFi connection first:
+If you're using a Desktop image with a monitor, keyboard, and mouse connected to the Pi, you can connect to WiFi directly from the desktop — just like any desktop Linux:
+
+1. Click the NetworkManager applet in the top panel (right edge of the screen).
+2. Select your WiFi network and enter the password.
+3. Wait 2–3 minutes for containers to download and start.
+4. Open a browser on the Pi or another device and go to **[https://halos.local/](https://halos.local/)**.
+
+### Option 3: WiFi access point (all headless images and AP desktop variant)
+
+All headless images and the [AP desktop variant](choosing-an-image.md#access-point-variant) create a local WiFi hotspot on first boot — but this hotspot does **not** provide internet access. You need to configure a WiFi connection first:
 
 1. On your laptop or phone, connect to the **`Halos-XXXX`** WiFi network (password: `halos1234`).
 2. Open **[https://halos.local:9090/](https://halos.local:9090/)** — this is Cockpit, which runs natively without containers.
