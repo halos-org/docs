@@ -4,7 +4,17 @@ HaLOS uses NetworkManager for network configuration, with Cockpit providing a we
 
 ## WiFi
 
-Configure WiFi through the Cockpit NetworkManager module:
+### WiFi on Desktop images
+
+If you're using a Desktop image with a monitor, keyboard, and mouse, connect to WiFi using the NetworkManager applet in the desktop top panel (right edge of the screen). Select a network, enter the password, and you're connected — just like any desktop Linux system.
+
+### WiFi on headless images
+
+Headless images have no desktop environment, so WiFi must be configured through Cockpit or the command line. All headless images include a built-in [WiFi access point](../getting-started/choosing-an-image.md#access-point-variant) for initial setup without Ethernet.
+
+### WiFi through Cockpit
+
+On any image, you can configure WiFi through the Cockpit NetworkManager module:
 
 1. Open Cockpit → Networking.
 2. Click on the WiFi interface.
@@ -13,13 +23,9 @@ Configure WiFi through the Cockpit NetworkManager module:
 
 ![WiFi Configuration](../assets/images/cockpit_networkmanager_wifi.jpg)
 
-### WiFi on headless images
-
-Headless images have no desktop environment, so WiFi must be configured through Cockpit or the command line. If you don't have Ethernet for initial access, use an [AP image variant](../getting-started/choosing-an-image.md#access-point-variant).
-
 ## Access point mode
 
-The AP image variant (`Halos-Desktop-Marine-HALPI2-AP`) creates a WiFi access point on first boot:
+All headless images and the `Halos-Desktop-Marine-HALPI2-AP` desktop variant create a WiFi access point on first boot:
 
 - **Network name**: `Halos-XXXX` (XXXX is unique to your device)
 - **Password**: `halos1234`
