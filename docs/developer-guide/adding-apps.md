@@ -101,6 +101,7 @@ services:
   my-app:
     image: example/my-app:${UPSTREAM_VERSION:-1.0.0}
     container_name: my-app
+    init: true
     restart: unless-stopped
     env_file:
       - runtime.env
@@ -120,6 +121,7 @@ networks:
 
 Key conventions:
 
+- **Init**: Always set `init: true` so Docker uses tini as PID 1 for proper signal handling (graceful shutdown)
 - **Restart policy**: Always `unless-stopped`
 - **Logging**: Use `journald` driver so logs are accessible via Cockpit
 - **Network**: Join `halos-proxy-network` for Traefik routing
@@ -134,6 +136,7 @@ If the app needs hardware access (USB, serial, CAN bus):
 services:
   my-app:
     image: example/my-app:latest
+    init: true
     network_mode: host
     # No networks section when using host networking
 ```
@@ -250,6 +253,7 @@ Here's a complete example of a marine monitoring app:
       marine-monitor:
         image: example/marine-monitor:${UPSTREAM_VERSION:-1.0.0}
         container_name: marine-monitor
+        init: true
         restart: unless-stopped
         env_file:
           - runtime.env
