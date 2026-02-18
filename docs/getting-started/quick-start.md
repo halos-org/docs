@@ -28,6 +28,9 @@ Not sure which image to pick? See [Choosing an Image](choosing-an-image.md). For
 
 For HALPI2 with an NVMe SSD, follow the [HALPI2 flashing instructions](https://docs.hatlabs.fi/halpi2/user-guide/software.html#flashing-an-operating-system-image-to-ssd) instead.
 
+!!! warning "CM5 with eMMC"
+    If flashing a HALPI2 image to a Compute Module 5's eMMC, you must edit `config.txt` on the boot partition after flashing: comment out the `dtparam=sd=off` line. Without this change, the system won't boot. See [Troubleshooting](../user-guide/troubleshooting.md#halpi2-drops-to-initramfs-on-cm5-emmc) for details.
+
 ## 3. Boot and connect
 
 !!! important "Internet required"
