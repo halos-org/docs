@@ -108,6 +108,24 @@ If you've forgotten the new hostname, find the device by:
 - Connecting a monitor and keyboard to see the login prompt (which shows the hostname)
 - Scanning the network: `ping -c1 halos.local` (if you haven't changed it) or use a network scanner
 
+## HALPI2 drops to initramfs on CM5 eMMC
+
+**Symptom**: After flashing a HALPI2 image to a Compute Module 5's eMMC, the system drops to an `initramfs` BusyBox prompt instead of booting normally. The same image works fine when flashed to an NVMe SSD.
+
+**Cause**: HALPI2 images disable the SD card interface (`dtparam=sd=off` in `config.txt`) to avoid a [known shutdown delay](https://github.com/raspberrypi/linux/issues/7014). On CM5, the eMMC uses the same controller, so disabling it prevents the kernel from finding the root filesystem.
+
+**Solution**: After flashing and before booting, mount the boot partition on your computer and edit `config.txt`:
+
+1. Find the line `dtparam=sd=off` (near the end of the file).
+2. Comment it out by adding a `#` prefix:
+    ```
+    #dtparam=sd=off
+    ```
+3. Save, unmount, and boot.
+
+!!! note
+    This only affects CM5 eMMC. HALPI2 units with NVMe SSDs are not affected.
+
 ## Containers not starting
 
 **Symptom**: Services show as failed or containers aren't running.
