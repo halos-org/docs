@@ -30,6 +30,8 @@ Each container app package contains:
 └── {app-name}.png              # Icon for store and dashboard
 ```
 
+The package is intentionally lightweight — it does **not** contain the Docker image itself. The actual container image is pulled from the registry when the service starts for the first time. This keeps packages small (a few kilobytes) and ensures you always get the exact image version specified in the compose file.
+
 The systemd service runs `docker compose up -d` on start and `docker compose down` on stop.
 
 ## App Definition Format
@@ -151,10 +153,13 @@ The CI/CD pipeline builds packages on push to main, publishes to unstable, and p
 
 ```
 apt install marine-grafana-container
-  → dpkg extracts files
+  → dpkg extracts files (seconds — package is small)
   → postinst creates data directories, generates secrets
   → systemd starts grafana-container.service
-    → docker compose up -d
+    → prestart.sh computes runtime configuration
+    → docker compose up
+      → Docker pulls image layers from registry (may take minutes on first install)
+      → Container starts
       → Traefik detects labels, creates route
       → mDNS publisher advertises grafana.halos.local
       → Homarr adapter adds dashboard tile
@@ -178,7 +183,7 @@ apt remove marine-grafana-container
 apt upgrade
   → dpkg extracts updated files
   → systemd restarts the service
-    → docker compose pulls new image and recreates container
+    → docker compose pulls new image (only if upstream version changed) and recreates container
   → Persistent data in /var/lib/container-apps/{app}/ is preserved
 ```
 

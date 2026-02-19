@@ -6,13 +6,20 @@ HaLOS provides a container app store — a curated collection of applications pa
 
 ## How it works
 
-Each container app is a standard Debian package (`.deb`) that contains:
+Installing a container app is a two-phase process:
 
-- A Docker Compose file defining the container(s)
-- A systemd service that manages the container lifecycle
-- Docker labels for Traefik routing and Homarr dashboard integration
+1. **Package install (fast)** — HaLOS downloads and installs a small package that describes how to run the app. This takes only a few seconds.
 
-When you install an app, `apt` downloads the package, `systemd` starts the container, Traefik picks up the routing labels, and the app appears on your [dashboard](dashboard.md) — all automatically.
+2. **Image pull (slow)** — The app's actual software is then downloaded from the internet. This can take anywhere from 30 seconds to several minutes depending on the app size and your network speed.
+
+The app only becomes accessible after the download completes and the app starts. It then appears on your [dashboard](dashboard.md) automatically.
+
+??? info "Under the hood"
+    The package is a standard Debian `.deb` containing a Docker Compose file
+    (which defines the containers to run), a systemd service (which manages
+    the app lifecycle), and metadata for routing and dashboard integration.
+    The heavy download in phase 2 is Docker pulling the container image
+    layers from a registry.
 
 ## Browsing the store
 
@@ -26,8 +33,8 @@ The store shows apps from all configured stores. The Marine variant adds a dedic
 
 1. Click on an app to view its details (description, version, dependencies).
 2. Click **Install**.
-3. Wait for the package to download and the container to start (typically 30–60 seconds).
-4. The app appears on your Homarr dashboard and is accessible via its subdomain URL.
+3. The package installs quickly, but the app needs time to pull its Docker image on first start. Small apps are ready within a minute; larger ones (e.g., Grafana, OpenCPN) may take several minutes on slower connections.
+4. Once the image pull completes, the app appears on your Homarr dashboard and is accessible via its subdomain URL.
 
 ## Managing installed apps
 
