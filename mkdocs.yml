@@ -83,6 +83,7 @@ nav:
     - System Management: user-guide/system-management.md
     - Installing Apps: user-guide/installing-apps.md
     - Marine Apps: user-guide/marine-apps.md
+    - App Data and Migration: user-guide/app-data.md
     - Networking: user-guide/networking.md
     - Troubleshooting: user-guide/troubleshooting.md
   - Architecture:
