@@ -16,7 +16,7 @@ The adapter discovers containers by looking for `homarr.*` Docker labels:
 labels:
   homarr.enable: "true"
   homarr.name: "My App"
-  homarr.url: "https://myapp.halos.local"
+  homarr.url: "https://halos.local/my-app/"
   homarr.category: "Tools"
 ```
 
@@ -24,7 +24,7 @@ All HaLOS container packages include these labels, so every installed app shows 
 
 ## Using the dashboard
 
-- **Open an app**: Click any tile to open that application. Apps open via their subdomain URL (e.g., `https://signalk.halos.local/`).
+- **Open an app**: Click any tile to open that application.
 - **Categories**: Apps are grouped by category (System, Monitoring, Marine, etc.).
 - **Status**: Tiles indicate whether the underlying container is running.
 

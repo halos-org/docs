@@ -61,7 +61,6 @@ depends:
   - docker.io (>= 20.10) | docker-ce (>= 20.10)
 
 routing:
-  subdomain: my-app
   auth:
     mode: forward_auth    # or: oidc, none
 
@@ -125,7 +124,7 @@ Key conventions:
 - **Restart policy**: Always `unless-stopped`
 - **Logging**: Use `journald` driver so logs are accessible via Cockpit
 - **Network**: Join `halos-proxy-network` for Traefik routing
-- **No port exposure**: Do not add a `ports:` section unless the app needs non-HTTP protocol access
+- **Port assignment**: External HTTPS ports are assigned automatically by the port registry — do not add a `ports:` section unless the app needs non-HTTP protocol access
 - **Data volumes**: Use `${CONTAINER_DATA_ROOT}` for persistent data
 
 ### Host Networking Apps
@@ -145,10 +144,9 @@ Add `host_port` to `routing` in metadata.yaml:
 
 ```yaml
 routing:
-  subdomain: my-app
   auth:
     mode: forward_auth
-  host_port: 8080
+  port: 8080
 ```
 
 ## Step 3: Add config.yml (Optional)
@@ -193,7 +191,7 @@ This requires `container-packaging-tools` to be installed.
 1. Copy the `.deb` to a test device
 2. Install: `sudo apt install ./my-app-container_1.0.0-1_all.deb`
 3. Verify the container starts: `docker ps`
-4. Check the subdomain resolves: `https://my-app.halos.local`
+4. Check the app is accessible: `https://halos.local/my-app/`
 5. Verify the app appears in the Homarr dashboard
 6. Test removal: `sudo apt remove my-app-container`
 
@@ -236,7 +234,6 @@ Here's a complete example of a marine monitoring app:
       - docker.io (>= 20.10) | docker-ce (>= 20.10)
 
     routing:
-      subdomain: marine-monitor
       auth:
         mode: forward_auth
 

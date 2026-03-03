@@ -4,7 +4,7 @@ HaLOS provides unified authentication across all web applications using Authelia
 
 ## Overview
 
-Instead of logging in to each application separately, users authenticate once with Authelia. The session cookie is shared across all `*.halos.local` subdomains, so navigating between applications is seamless.
+Instead of logging in to each application separately, users authenticate once with Authelia. The session cookie is shared across `halos.local` (works across all ports), so navigating between applications is seamless.
 
 Two authentication mechanisms are supported:
 
@@ -18,7 +18,7 @@ Two authentication mechanisms are supported:
 
 ### Forward Auth (Default)
 
-Forward Auth is the default for most applications. The application itself has no knowledge of authentication -- Traefik handles it transparently.
+Forward Auth is the default for most applications. The application itself has no knowledge of authentication — Traefik handles it transparently.
 
 ```mermaid
 sequenceDiagram
@@ -27,7 +27,7 @@ sequenceDiagram
     participant A as Authelia
     participant App as Application
 
-    B->>T: GET grafana.halos.local
+    B->>T: GET halos.local:4431
     T->>A: ForwardAuth check
     A-->>T: 200 OK + user headers
     T->>App: Request + Remote-User header
@@ -71,7 +71,7 @@ OIDC clients are registered with Authelia via configuration snippets. When an OI
 
 ### No Auth
 
-Applications can opt out of authentication entirely. They are accessible without login but still benefit from subdomain routing and TLS.
+Applications can opt out of authentication entirely. They are accessible without login but still benefit from port-based routing and TLS.
 
 ## User Database
 
@@ -90,7 +90,7 @@ Users should change the default password immediately after first login via the C
 ## Session Management
 
 - Sessions are stored in a SQLite database backed by Valkey (Redis-compatible) for caching
-- Session cookies are scoped to the `.halos.local` domain, enabling SSO across all subdomains
+- Session cookies are scoped to `halos.local`, enabling SSO across all ports
 - Cookies are HTTP-only and Secure (when using HTTPS)
 - Sessions expire after a configurable timeout
 
@@ -120,8 +120,8 @@ When an OIDC app is removed, its `postrm` script deletes the snippet and Autheli
 
 ## Security Considerations
 
-- All traffic encrypted with TLS (self-signed wildcard certificate for `*.halos.local`)
+- All traffic encrypted with TLS (self-signed certificate for `halos.local`)
 - Containers communicate over an isolated Docker bridge network
-- Only Traefik exposes ports to the host network (80, 443)
+- Traefik exposes ports 80, 443, and 4430–4450 to the host network
 - OIDC private keys and client secrets have restricted file permissions (600)
 - Passwords stored as non-reversible argon2id hashes

@@ -73,14 +73,13 @@ The `routing` section configures Traefik reverse proxy integration:
 
 ```yaml
 routing:
-  subdomain: grafana           # Subdomain name (grafana.halos.local)
   auth:
     mode: forward_auth         # Authentication mode
     forward_auth:              # Only for forward_auth mode
       headers:                 # Header remapping (optional)
         Remote-User: X-WEBAUTH-USER
         Remote-Groups: X-WEBAUTH-GROUPS
-  host_port: 3000              # Only for host networking apps
+  port: 3000                   # Backend port (for host networking apps)
 ```
 
 ### Auth Modes
@@ -91,12 +90,9 @@ routing:
 | `oidc` | App handles OIDC flow directly with Authelia |
 | `none` | No authentication enforced |
 
-### Subdomain
+### `HALOS_EXTERNAL_PORT`
 
-- Defaults to `app_id` if not specified
-- Empty string (`""`) means root domain (used by Homarr)
-- Must be unique across all installed apps
-- Lowercase alphanumeric with hyphens only
+Each container receives a `HALOS_EXTERNAL_PORT` environment variable containing its assigned external HTTPS port (from range 4430–4450). Apps can use this for generating callback URLs, self-referential links, and OIDC redirect URIs.
 
 ## Web UI Configuration
 
@@ -181,14 +177,13 @@ layout:
   height: 2
 
 routing:
-  subdomain: signalk
   auth:
     mode: none
-  host_port: 3000
+  port: 3000
 
 default_config:
   SIGNALK_PORT: "3000"
   SIGNALK_OIDC_ENABLED: "true"
-  SIGNALK_OIDC_ISSUER: "https://auth.${HALOS_DOMAIN}"
+  SIGNALK_OIDC_ISSUER: "https://${HALOS_DOMAIN}/sso"
   SIGNALK_OIDC_CLIENT_ID: "signalk"
 ```

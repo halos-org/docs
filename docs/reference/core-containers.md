@@ -17,14 +17,15 @@ All containers are managed by a single systemd service: `halos-core-containers.s
 
 ### Purpose
 
-Reverse proxy that receives all incoming HTTP/HTTPS traffic and routes it to the appropriate application based on the `Host` header.
+Reverse proxy that receives all incoming HTTP/HTTPS traffic and routes it to the appropriate application based on the port/entrypoint.
 
 ### Ports
 
 | Port | Protocol | Purpose |
 |------|----------|---------|
 | 80 | HTTP | Redirects to HTTPS |
-| 443 | HTTPS | All application traffic |
+| 443 | HTTPS | Dashboard, SSO, path redirects |
+| 4430–4450 | HTTPS | Per-app dedicated ports |
 
 ### Configuration
 
@@ -50,8 +51,8 @@ Identity provider that authenticates users and provides SSO across all HaLOS web
 
 ### Access
 
-- URL: `https://auth.halos.local`
-- No direct port exposure -- accessed through Traefik
+- URL: `https://halos.local/sso/`
+- No direct port exposure — accessed through Traefik
 
 ### Authentication Methods
 
@@ -138,5 +139,5 @@ The core containers package provides system binaries that other container packag
 
 | Binary | Purpose |
 |--------|---------|
-| `configure-container-routing` | Sets up Traefik routing for an app |
+| `configure-container-routing` | Sets up Traefik routing for an app (port assignment, labels, path redirect) |
 | `reload-oidc-clients` | Regenerates merged OIDC client configuration |

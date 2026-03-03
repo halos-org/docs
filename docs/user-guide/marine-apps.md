@@ -16,7 +16,7 @@ Key marine apps available in the store:
 
 ## Signal K Server
 
-**URL**: `https://signalk.halos.local/`
+**URL**: `https://halos.local/signalk-server/`
 
 [Signal K](https://signalk.org/) is an open-source marine data server. It acts as a central hub for all your boat's sensor data:
 
@@ -31,7 +31,7 @@ Signal K is typically the first marine app to set up. Connect your NMEA data sou
 
 ## InfluxDB
 
-**URL**: `https://influxdb.halos.local/`
+**URL**: `https://halos.local/influxdb/`
 
 [InfluxDB](https://www.influxdata.com/) is a time-series database optimized for sensor data. In the marine context, it stores historical data from Signal K — wind speed, boat speed, depth, engine parameters, battery voltage, and any other metrics your instruments produce.
 
@@ -43,7 +43,7 @@ Use InfluxDB to:
 
 ## Grafana
 
-**URL**: `https://grafana.halos.local/`
+**URL**: `https://halos.local/grafana/`
 
 [Grafana](https://grafana.com/) provides dashboards and data visualization. Connect it to InfluxDB to create custom displays for your boat data:
 
@@ -56,7 +56,7 @@ Use InfluxDB to:
 
 ## AvNav
 
-**URL**: `https://avnav.halos.local/`
+**URL**: `https://halos.local/avnav/`
 
 [AvNav](https://www.wellenvogel.net/software/avnav/docs/beschreibung.html) is a navigation application with chart display and route planning. It reads position and instrument data from Signal K and provides:
 
@@ -80,7 +80,7 @@ sudo apt install opencpn
 Or install it via Cockpit → Packages.
 
 !!! note "Experimental container"
-    An experimental containerized version is available in the Marine App Store (`https://opencpn.halos.local/`), providing web-based remote desktop access. This is useful on headless images but is not yet production-ready.
+    An experimental containerized version is available in the Marine App Store (`https://halos.local/opencpn/`), providing web-based remote desktop access. This is useful on headless images but is not yet production-ready.
 
 ## Installing marine apps
 

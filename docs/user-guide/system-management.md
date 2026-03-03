@@ -10,7 +10,7 @@ There are two ways to reach Cockpit:
 
 | Method | URL | Authentication |
 |--------|-----|----------------|
-| Via reverse proxy | `https://cockpit.halos.local/` | Authelia SSO |
+| Via path redirect | `https://halos.local/cockpit/` | Redirects to port 9090 |
 | Direct access | `https://halos.local:9090/` | System credentials (`pi` / `halos`) |
 
 Direct access on port 9090 is always available, even if Traefik or Authelia are down. Use it as a fallback for troubleshooting.

@@ -27,7 +27,7 @@ Common issues and how to resolve them.
 
 This is **expected behavior**. HaLOS uses self-signed certificates because automatic certificates (Let's Encrypt) aren't possible on local `.local` networks.
 
-Accept the warning once per hostname. Since each app uses a different subdomain (`signalk.halos.local`, `grafana.halos.local`, etc.), you'll see the warning once for each subdomain you visit for the first time.
+Accept the certificate warning for each port as you encounter it — the same certificate covers all ports, but browsers treat each port as a separate origin.
 
 See [First Boot — Certificate warning](../getting-started/first-boot.md#certificate-warning) for browser-specific instructions.
 
