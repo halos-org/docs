@@ -7,10 +7,10 @@ How HaLOS is structured, from the base OS to the application layer.
 HaLOS follows a set of core design principles:
 
 - **Container-first**: Applications run as Docker containers, managed as standard Debian packages
-- **Web-managed**: All administration through browser interfaces -- no terminal required
-- **Subdomain routing**: Each application gets its own subdomain (e.g., `grafana.halos.local`) instead of a port number
+- **Web-managed**: All administration through browser interfaces — no terminal required
+- **Port-based routing**: Each application gets a dedicated HTTPS port with path redirects for discoverability (e.g., `halos.local/grafana/`)
 - **Single sign-on**: One login grants access to all web applications
-- **Auto-discovery**: Installed apps automatically appear in the dashboard and get mDNS hostnames
+- **Auto-discovery**: Installed apps automatically appear in the dashboard
 - **Standard tooling**: Built on proven Debian technologies (APT, systemd, Docker)
 
 ## Layer Architecture
@@ -24,11 +24,10 @@ graph TB
     end
 
     subgraph L3["Web Management Layer"]
-        Traefik["Traefik<br/>Reverse Proxy<br/>(ports 80/443)"]
+        Traefik["Traefik<br/>Reverse Proxy<br/>(ports 80/443/4430-4450)"]
         Authelia["Authelia<br/>SSO Identity Provider"]
         Homarr["Homarr<br/>Dashboard"]
         Cockpit["Cockpit<br/>System Admin<br/>(port 9090)"]
-        mDNS["mDNS Publisher"]
         Adapter["Homarr Adapter"]
     end
 
@@ -49,7 +48,6 @@ graph TB
     Homarr --> Traefik
     Adapter --> Homarr
     Adapter --> Docker
-    mDNS --> Docker
     L3 --> Docker
     Docker --> Systemd
     APT --> Systemd
@@ -77,11 +75,10 @@ The core HaLOS services that provide the unified web experience:
 
 | Component | Role | Access |
 |-----------|------|--------|
-| **Traefik** | Reverse proxy, TLS termination, routing | Ports 80/443 |
-| **Authelia** | SSO authentication (Forward Auth + OIDC) | `auth.halos.local` |
+| **Traefik** | Reverse proxy, TLS termination, routing | Ports 80/443/4430–4450 |
+| **Authelia** | SSO authentication (Forward Auth + OIDC) | `halos.local/sso/` |
 | **Homarr** | Dashboard landing page | `halos.local` |
 | **Cockpit** | System administration | Port 9090 |
-| **mDNS Publisher** | Subdomain advertisement via Avahi | Native service |
 | **Homarr Adapter** | Container auto-discovery, first-boot setup | Native service |
 
 ### Layer 4: Applications
@@ -95,15 +92,15 @@ The following diagram shows how a browser request reaches an application:
 ```mermaid
 sequenceDiagram
     participant B as Browser
-    participant T as Traefik (80/443)
+    participant T as Traefik (80/443/4430-4450)
     participant A as Authelia
     participant App as Application
 
-    B->>T: https://grafana.halos.local
+    B->>T: https://halos.local:4431
     T->>A: ForwardAuth check
     alt No valid session
         A-->>T: 401 + redirect
-        T-->>B: Redirect to auth.halos.local
+        T-->>B: Redirect to halos.local/sso/
         B->>A: Login (username/password)
         A-->>B: Session cookie + redirect back
         B->>T: Original request (with cookie)
@@ -125,20 +122,19 @@ When a container app package is installed via APT:
 2. **systemd** starts the container service
 3. **Docker** pulls the image and starts the container
 4. **Traefik** detects the new container's labels and creates a route
-5. **mDNS Publisher** detects the `halos.subdomain` label and advertises the hostname
-6. **Homarr Adapter** detects the `homarr.*` labels and adds a tile to the dashboard
+5. **Homarr Adapter** detects the `homarr.*` labels and adds a tile to the dashboard
 
-All of this happens automatically -- the user just clicks "Install" in the app store.
+All of this happens automatically — the user just clicks "Install" in the app store.
 
 ### Networking
 
-All proxied containers share a Docker bridge network called `halos-proxy-network`. Traefik routes requests based on the `Host` header to the appropriate container.
+All proxied containers share a Docker bridge network called `halos-proxy-network`. Traefik routes requests based on the entrypoint (port) to the appropriate container.
 
-Apps using host networking (e.g., Signal K for hardware access) are routed via `host.docker.internal`. They retain direct port access alongside subdomain access.
+Apps using host networking (e.g., Signal K for hardware access) are routed via `host.docker.internal`. They retain direct port access.
 
 ## Further Reading
 
-- [Reverse Proxy](reverse-proxy.md) -- Traefik configuration and routing
-- [Single Sign-On](sso.md) -- Authentication architecture
-- [Dashboard Integration](dashboard.md) -- Homarr auto-discovery
-- [Package System](package-system.md) -- Container app packaging
+- [Reverse Proxy](reverse-proxy.md) — Traefik configuration and routing
+- [Single Sign-On](sso.md) — Authentication architecture
+- [Dashboard Integration](dashboard.md) — Homarr auto-discovery
+- [Package System](package-system.md) — Container app packaging
