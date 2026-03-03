@@ -77,17 +77,17 @@ Run `sudo apt update && sudo apt upgrade` from the terminal or use Cockpit's Pac
 
 ### Can I add my own Docker containers?
 
-Yes, but for full integration (dashboard tile, SSO, subdomain routing), package them using the [container-packaging-tools](../developer-guide/adding-apps.md). Standalone Docker containers will work but won't appear in the dashboard or use the SSO system.
+Yes, but for full integration (dashboard tile, SSO, port-based routing), package them using the [container-packaging-tools](../developer-guide/adding-apps.md). Standalone Docker containers will work but won't appear in the dashboard or use the SSO system.
 
 ## Networking
 
-### How does `*.halos.local` name resolution work?
+### How does `halos.local` name resolution work?
 
-HaLOS uses mDNS (multicast DNS) via Avahi. The `halos-mdns-publisher` service automatically advertises subdomain hostnames for installed apps. See [Networking](../user-guide/networking.md) for details.
+HaLOS uses mDNS (multicast DNS) via Avahi to advertise the device hostname (`halos.local`) on the local network. Apps are accessed via path redirects on this hostname (e.g., `halos.local/grafana/`). See [Networking](../user-guide/networking.md) for details.
 
 ### Can I change the hostname from `halos`?
 
-The hostname can be changed, but it affects all URLs (`*.halos.local` becomes `*.newhostname.local`). The TLS certificate is regenerated to match the new hostname. Bookmarks and saved URLs will need to be updated.
+The hostname can be changed, but it affects all URLs (`halos.local` becomes `newhostname.local`). The TLS certificate is regenerated to match the new hostname. Bookmarks and saved URLs will need to be updated.
 
 ### Can I access HaLOS from the internet?
 
@@ -98,14 +98,6 @@ HaLOS is designed for local network use. Internet access requires additional con
 ### The dashboard shows no app tiles
 
 The `homarr-container-adapter` may not have synced yet. Wait a minute for auto-discovery, or check that containers are running with `docker ps`.
-
-### An app's subdomain doesn't resolve
-
-1. Check the app's container is running: `docker ps`
-2. Check the mDNS publisher: `systemctl status halos-mdns-publisher`
-3. Test resolution: `avahi-resolve -n <app>.halos.local`
-
-See [Troubleshooting](../user-guide/troubleshooting.md) for more solutions.
 
 ### How do I get help?
 

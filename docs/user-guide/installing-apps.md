@@ -34,7 +34,7 @@ The store shows apps from all configured stores. The Marine variant adds a dedic
 1. Click on an app to view its details (description, version, dependencies).
 2. Click **Install**.
 3. The package installs quickly, but the app needs time to pull its Docker image on first start. Small apps are ready within a minute; larger ones (e.g., Grafana, OpenCPN) may take several minutes on slower connections.
-4. Once the image pull completes, the app appears on your Homarr dashboard and is accessible via its subdomain URL.
+4. Once the image pull completes, the app appears on your Homarr dashboard and is accessible via its URL on the dashboard.
 
 ## Managing installed apps
 

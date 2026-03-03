@@ -60,8 +60,8 @@ HaLOS uses a self-signed TLS certificate to encrypt all web traffic. Your browse
 - **Firefox**: Click "Advanced…" → "Accept the Risk and Continue"
 - **Safari**: Click "Show Details" → "visit this website"
 
-!!! note "Expect multiple warnings"
-    The warning appears once per hostname. Since HaLOS uses a separate subdomain for each service, you'll see this warning several times during initial setup — for `halos.local`, `auth.halos.local`, `cockpit.halos.local`, `signalk.halos.local`, and so on. This is a one-time annoyance per subdomain; after accepting, subsequent visits work without interruption.
+!!! note "One warning covers all apps"
+    The certificate is issued for `halos.local` and works across all ports, so you only need to accept the warning once. Cockpit on port 9090 uses its own certificate, so you'll see a separate warning for that.
 
 !!! info "Why self-signed?"
     Automatic certificates from Let's Encrypt require a public domain name and internet-accessible ports 80/443. Since HaLOS runs on a local network with a `.local` mDNS hostname, self-signed certificates are the practical choice. Future versions may offer additional certificate options.
