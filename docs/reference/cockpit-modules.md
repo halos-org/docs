@@ -117,4 +117,4 @@ Configures Cockpit for the HaLOS environment:
 
 Cockpit is always accessible at `https://halos.local:9090/` using Linux system credentials (`pi`/`halos` by default).
 
-It is also accessible via `https://cockpit.halos.local` through Traefik, which requires Authelia SSO authentication.
+It is also accessible via `https://halos.local/cockpit/` (which redirects to port 9090).

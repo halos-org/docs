@@ -10,7 +10,7 @@ Packaging containers as `.deb` files provides several advantages over Docker Com
 - **Dependency management**: APT resolves dependencies automatically (e.g., Docker)
 - **Clean removal**: `apt remove` stops containers and cleans up
 - **Automatic updates**: Standard `apt upgrade` workflow
-- **System integration**: systemd services, icons, mDNS, dashboard tiles -- all in one package
+- **System integration**: systemd services, icons, dashboard tiles — all in one package
 - **Repository distribution**: Published to `apt.hatlabs.fi` like any APT package
 
 ## What's in a Container App Package?
@@ -60,7 +60,6 @@ tags:
   - interface::web
 
 routing:
-  subdomain: grafana
   auth:
     mode: forward_auth
 
@@ -74,7 +73,7 @@ See the [Container Metadata Reference](../reference/container-metadata.md) for t
 
 ### docker-compose.yml
 
-Standard Docker Compose file. The `container-packaging-tools` adds Traefik labels, mDNS labels, and Homarr labels automatically based on `metadata.yaml`.
+Standard Docker Compose file. The `container-packaging-tools` adds Traefik labels and Homarr labels automatically based on `metadata.yaml`.
 
 ### config.yml (optional)
 
@@ -97,9 +96,8 @@ The tool:
 1. Validates the metadata against the schema
 2. Generates Traefik routing labels from the `routing` configuration
 3. Generates Homarr dashboard labels from the metadata
-4. Generates mDNS publisher labels from the subdomain
-5. Creates Debian packaging files (control, rules, postinst, prerm, postrm)
-6. Builds the `.deb` package with `dpkg-buildpackage`
+4. Creates Debian packaging files (control, rules, postinst, prerm, postrm)
+5. Builds the `.deb` package with `dpkg-buildpackage`
 
 ## Tag-Based Categorization
 
@@ -161,7 +159,6 @@ apt install marine-grafana-container
       → Docker pulls image layers from registry (may take minutes on first install)
       → Container starts
       → Traefik detects labels, creates route
-      → mDNS publisher advertises grafana.halos.local
       → Homarr adapter adds dashboard tile
 ```
 
@@ -172,7 +169,6 @@ apt remove marine-grafana-container
   → prerm stops grafana-container.service
     → docker compose down
       → Traefik removes route
-      → mDNS publisher removes advertisement
       → Homarr adapter detects removal
   → dpkg removes package files
 ```

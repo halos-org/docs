@@ -89,7 +89,7 @@ halos-distro/                       # Workspace root
 ├── container-packaging-tools/      # App → .deb converter
 ├── halos-core-containers/          # Core apps (Traefik, Authelia, Homarr)
 ├── halos-marine-containers/        # Marine app definitions + store
-├── halos-mdns-publisher/           # mDNS subdomain service (Rust)
+├── halos-mdns-publisher/           # mDNS hostname publisher (Rust)
 ├── homarr-container-adapter/       # Dashboard auto-discovery (Rust)
 ├── halos-homarr-branding/          # Homarr HaLOS theming
 ├── halos-metapackages/             # halos & halos-marine metapackages

@@ -15,7 +15,7 @@ Marine data server and API hub.
 | Property | Value |
 |----------|-------|
 | Package | `marine-signalk-server-container` |
-| URL | `https://signalk.halos.local` |
+| URL | `https://halos.local/signalk-server/` |
 | Direct port | 3000 (host networking) |
 | Auth mode | `none` (OIDC configured separately) |
 | License | Apache-2.0 |
@@ -26,14 +26,14 @@ Signal K provides a central hub for collecting, processing, and distributing mar
 
 ### Network
 
-Uses host networking (`network_mode: host`) for direct access to USB/serial devices and CAN bus interfaces. Still accessible via Traefik subdomain routing.
+Uses host networking (`network_mode: host`) for direct access to USB/serial devices and CAN bus interfaces. Still accessible via Traefik port-based routing.
 
 ### OIDC Integration
 
 Signal K has native OIDC support and authenticates directly with Authelia. Configuration is set via environment variables:
 
 - `SIGNALK_OIDC_ENABLED=true`
-- `SIGNALK_OIDC_ISSUER=https://auth.${HALOS_DOMAIN}`
+- `SIGNALK_OIDC_ISSUER=https://${HALOS_DOMAIN}/sso`
 - `SIGNALK_OIDC_AUTO_LOGIN=true`
 
 ## InfluxDB
@@ -43,7 +43,7 @@ Time-series database for marine data logging.
 | Property | Value |
 |----------|-------|
 | Package | `marine-influxdb-container` |
-| URL | `https://influxdb.halos.local` |
+| URL | `https://halos.local/influxdb/` |
 | Auth mode | `none` |
 | License | MIT |
 
@@ -69,7 +69,7 @@ Data visualization and monitoring platform.
 | Property | Value |
 |----------|-------|
 | Package | `marine-grafana-container` |
-| URL | `https://grafana.halos.local` |
+| URL | `https://halos.local/grafana/` |
 | Auth mode | `none` (uses native OAuth with Authelia) |
 | License | AGPL-3.0 |
 
@@ -88,7 +88,7 @@ Touch-optimized chart plotter for sailing and motor yachts.
 | Property | Value |
 |----------|-------|
 | Package | `marine-avnav-container` |
-| URL | `https://avnav.halos.local` |
+| URL | `https://halos.local/avnav/` |
 | Auth mode | `forward_auth` |
 | License | GPL-3.0 |
 
@@ -103,7 +103,7 @@ Open source chart plotter and navigation software.
 | Property | Value |
 |----------|-------|
 | Package | `marine-opencpn-container` |
-| URL | `https://opencpn.halos.local` |
+| URL | `https://halos.local/opencpn/` |
 | Auth mode | `none` |
 | License | GPL-2.0 |
 
