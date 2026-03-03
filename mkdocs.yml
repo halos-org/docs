@@ -103,7 +103,6 @@ nav:
     - Core Containers: reference/core-containers.md
     - Marine Containers: reference/marine-containers.md
     - Cockpit Modules: reference/cockpit-modules.md
-    - mDNS Publisher: reference/mdns-publisher.md
   - Appendices:
     - Roadmap: appendices/roadmap.md
     - FAQ: appendices/faq.md
