@@ -26,7 +26,10 @@ Not sure which image to pick? See [Choosing an Image](choosing-an-image.md). For
 !!! warning "Do not apply OS customization"
     When Raspberry Pi Imager offers to apply OS customization settings, click **No**. HaLOS has its own first-boot configuration.
 
-For HALPI2 with an NVMe SSD, follow the [HALPI2 flashing instructions](https://docs.hatlabs.fi/halpi2/user-guide/software.html#flashing-an-operating-system-image-to-ssd) instead.
+For HALPI2 with an NVMe SSD, follow the [HALPI2 flashing instructions](https://docs.hatlabs.fi/halpi2/user-guide/software/#flashing-an-operating-system-image-to-ssd) instead.
+
+!!! tip "Already running HaLOS?"
+    If the device is already running and reachable over SSH, you can re-flash it without removing the storage media. See [Flashing Over the Network](flashing-over-the-network.md).
 
 !!! warning "CM5 with eMMC"
     If flashing a HALPI2 image to a Compute Module 5's eMMC, you must edit `config.txt` on the boot partition after flashing: comment out the `dtparam=sd=off` line. Without this change, the system won't boot. See [Troubleshooting](../user-guide/troubleshooting.md#halpi2-drops-to-initramfs-on-cm5-emmc) for details.
