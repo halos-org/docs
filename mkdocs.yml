@@ -77,6 +77,7 @@ nav:
     - Choosing an Image: getting-started/choosing-an-image.md
     - First Boot: getting-started/first-boot.md
     - Installing on Existing OS: getting-started/installing-on-existing-os.md
+    - Flashing Over the Network: getting-started/flashing-over-the-network.md
   - User Guide:
     - Web Interface: user-guide/web-interface.md
     - Dashboard: user-guide/dashboard.md
