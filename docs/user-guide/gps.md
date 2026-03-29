@@ -11,7 +11,7 @@ By default, HaLOS Marine configures gpsd with:
 - **No fixed serial devices** — only USB auto-detection is enabled
 - **USB auto-detection** (`USBAUTO=true`) — USB GPS receivers are detected and added automatically when plugged in
 
-On [HALPI2](https://docs.hatlabs.fi/halpi2/), gpsd is additionally configured to use the GNSS HAT serial port (`/dev/ttyAMA0`). Any GNSS receiver HAT on this port will work. For u-blox receivers, HaLOS additionally auto-configures the module for marine use (10 Hz update rate, Sea dynamic model). See the [HALPI2 GNSS documentation](https://docs.hatlabs.fi/halpi2/user-guide/interfaces/#gnss-gps) for details.
+On [HALPI2](https://docs.hatlabs.fi/halpi2/), gpsd is additionally configured to use the GNSS HAT serial port (`/dev/ttyAMA0`). Any GNSS receiver HAT on this port will work. For u-blox receivers, HaLOS auto-configures the module for marine use on every boot (10 Hz update rate, Sea dynamic model, 115200 bps). This reconfiguration is necessary because ROM-based u-blox modules (such as the MAX-M8Q) have no flash memory — settings are stored in battery-backed RAM and may be lost on power cycles. The process is transparent and adds a few seconds to gpsd startup. See the [HALPI2 GNSS documentation](https://docs.hatlabs.fi/halpi2/user-guide/interfaces/#gnss-gps) for details.
 
 ## Accessing GPS data
 
