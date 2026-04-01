@@ -45,6 +45,37 @@ Manage Linux system user accounts. This is where you should **change the default
 
 <!-- TODO: screenshot of Cockpit Users panel -->
 
+### Sudo password
+
+By default, HaLOS requires a password for `sudo` commands. This is an upstream Raspberry Pi OS change (Feb 2026), and HaLOS follows their defaults.
+
+If you need passwordless sudo (e.g., for automation or development), you can disable the sudo password requirement.
+
+=== "Via raspi-config menu"
+
+    ```bash
+    sudo raspi-config
+    ```
+
+    Navigate to **1 System Options** → **S10 Admin Password** and select whether to require a password.
+
+=== "Via command line"
+
+    Disable sudo password (passwordless):
+
+    ```bash
+    sudo raspi-config nonint do_sudo_pass 1
+    ```
+
+    Re-enable sudo password:
+
+    ```bash
+    sudo raspi-config nonint do_sudo_pass 0
+    ```
+
+!!! warning "Security consideration"
+    Disabling the sudo password means any process running as your user can gain root access without a prompt. Only disable it on devices in trusted environments.
+
 ### Container Apps
 
 Browse and install containerized applications from the HaLOS app store. This is a separate module from the Packages panel — see [Installing Apps](installing-apps.md) for the full workflow.
