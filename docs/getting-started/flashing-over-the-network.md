@@ -62,7 +62,30 @@ wifi-country=FI
 
 ## 4. Flash the device
 
-=== "Remote (recommended)"
+=== "On the device (recommended)"
+
+    First, copy the image to the device:
+
+    ```bash
+    scp Halos-Marine-HALPI2.img.xz halos.local:
+    ```
+
+    Or download it directly on the device:
+
+    ```bash
+    ssh halos.local
+    curl -LO https://github.com/halos-org/halos-pi-gen/releases/latest/download/Halos-Marine-HALPI2.img.xz
+    ```
+
+    Then run flash-live-system on the device:
+
+    ```bash
+    sudo flash-live-system --config myboat.conf Halos-Marine-HALPI2.img.xz
+    ```
+
+    The tool auto-detects the safest flash method based on available RAM and disk layout.
+
+=== "Remote"
 
     Flash a device over SSH from your computer:
 
@@ -72,15 +95,8 @@ wifi-country=FI
 
     The tool copies the compressed image to the device's RAM, then decompresses and writes it to disk. If the transfer fails, no destructive action has happened — the device is fully recoverable.
 
-=== "On the device"
-
-    Run directly on the device being flashed:
-
-    ```bash
-    sudo flash-live-system --config myboat.conf Halos-Marine-HALPI2.img.xz
-    ```
-
-    The tool auto-detects the safest flash method based on available RAM and disk layout.
+    !!! warning "Remote flashing can fail silently"
+        Firewalls on your computer (common on macOS and Linux desktops) can block the image transfer to the device. When this happens, the flash fails without any error — the device simply reboots to the previous OS. If this happens, use the on-device method instead.
 
 Before writing, the tool asks you to confirm by typing a phrase:
 
