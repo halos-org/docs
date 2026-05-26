@@ -20,7 +20,7 @@ The active CA is published by the device at:
 https://<your-device>/halos-ca.crt
 ```
 
-Open that URL in your browser. The server sets `Content-Disposition: attachment`, so the browser offers to download the file (and on most platforms, opens the OS-level certificate install dialog directly) instead of rendering the PEM as text.
+Open that URL in your browser. The browser offers to download the file, and on most platforms opens the OS-level certificate install dialog directly.
 
 You'll get a "Not secure" warning on this first visit — that's the chicken-and-egg of trusting the CA before you trust the host. Click through. If you want stronger guarantees, see [Verifying the fingerprint](#verifying-the-fingerprint) below.
 
