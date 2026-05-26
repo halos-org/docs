@@ -69,15 +69,26 @@ The `HALOS_DOMAIN` environment variable is set to the device hostname (e.g., `ha
 
 ## TLS / HTTPS
 
-### Self-Signed Certificates
+### Device CA + signed leaf
 
-HaLOS generates a self-signed certificate on first boot:
+On first boot, HaLOS generates a small local Certificate Authority and signs a single leaf certificate from it:
 
-- Covers `halos.local` as a SAN
-- Valid for 365 days
-- Works across all ports — accept the certificate once and it covers every app
+- **CA**: 20-year validity. Lives on the device.
+- **Leaf**: 824 days (Apple's compliance ceiling on cert lifetime — Safari, Brave, system curl, every `SecTrustEvaluate` consumer rejects longer-lived leaves).
+- **SANs**: every hostname and IP listed in `/etc/halos/hostnames.conf` plus the device's `${hostname}.local`. One cert covers every port the device serves.
+- **Shared with Cockpit**: the same leaf is installed on Cockpit's `:9090` listener, so both surfaces show the same trust experience and the same cert.
 
-A single certificate for `halos.local` is sufficient because all apps share the same hostname, just on different ports.
+Because the trust anchor is the device's CA — not the leaf itself — installing the CA once on your workstation suppresses warnings for every app, every port, and every leaf rotation. See [Trust the device](../user-guide/trust-the-device.md) for the install workflow.
+
+The CA is published at `https://<host>/halos-ca.crt` with `Content-Disposition: attachment` so browsers offer the OS-level install dialog directly.
+
+### Custom CA
+
+Advanced operators with their own internal CA can have HaLOS use it instead of the auto-generated one by dropping `ca.crt` and `ca.key` into `/etc/halos/ca/`. The leaf is then re-signed under that anchor. This is a **single-device** feature — distributing the same private key across multiple devices undermines the trust model. See [docs/CERTS.md in halos-core-containers](https://github.com/halos-org/halos-core-containers/blob/main/docs/CERTS.md#installing-a-custom-ca) for the security rationale and the supported fleet pattern.
+
+### Renewal
+
+A systemd timer checks once a day whether the leaf is within its renewal window (60 days remaining by default) and re-signs if so. Cert rotation does not restart any container: Cockpit reloads its socket, and Traefik picks up the new leaf via a touched dynamic-config file. End users see no interruption.
 
 ### Let's Encrypt
 

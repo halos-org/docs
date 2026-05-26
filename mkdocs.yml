@@ -80,6 +80,7 @@ nav:
     - Flashing Over the Network: getting-started/flashing-over-the-network.md
   - User Guide:
     - Web Interface: user-guide/web-interface.md
+    - Trust the Device: user-guide/trust-the-device.md
     - Dashboard: user-guide/dashboard.md
     - System Management: user-guide/system-management.md
     - Installing Apps: user-guide/installing-apps.md
