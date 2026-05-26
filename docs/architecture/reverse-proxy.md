@@ -84,7 +84,7 @@ The CA is published at `https://<host>/halos-ca.crt` with `Content-Disposition: 
 
 ### Custom CA
 
-Advanced operators with their own internal CA can have HaLOS use it instead of the auto-generated one by dropping `ca.crt` and `ca.key` into `/etc/halos/ca/`. The leaf is then re-signed under that anchor. This is a **single-device** feature — distributing the same private key across multiple devices undermines the trust model. See [docs/CERTS.md in halos-core-containers](https://github.com/halos-org/halos-core-containers/blob/main/docs/CERTS.md#installing-a-custom-ca) for the security rationale and the supported fleet pattern.
+Advanced operators with their own internal CA can have HaLOS use it instead of the auto-generated one by dropping `ca.crt` and `ca.key` into `/etc/halos/ca/`. The leaf is then re-signed under that anchor. See [docs/CERTS.md in halos-core-containers](https://github.com/halos-org/halos-core-containers/blob/main/docs/CERTS.md#installing-a-custom-ca) for the install procedure.
 
 ### Renewal
 

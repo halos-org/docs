@@ -10,7 +10,7 @@ The cleaner path is to install the device's CA on your workstation once. After t
 - Every port (`:443`, `:9090`, `:4430`+) validates without a warning.
 - Leaf rotations are invisible — the trust anchor (the CA) is what your browser checks against, not the leaf itself.
 
-If you manage a fleet of HaLOS devices, you'll repeat this per device on your workstation. The device's CA is unique to that device — that's intentional, see [Why per-device CAs](#why-per-device-cas) below.
+Each HaLOS device has its own CA. If you have several devices, you install one CA per device on your workstation.
 
 ## Download the CA
 
@@ -97,16 +97,6 @@ ssh <your-device> 'sudo openssl x509 -in /var/lib/container-apps/halos-core-cont
 The two fingerprints must match exactly. If they don't, abort — the file you downloaded isn't from the device.
 
 The canonical version of this procedure lives in the developer docs: [docs/CERTS.md → Chicken-and-egg](https://github.com/halos-org/halos-core-containers/blob/main/docs/CERTS.md#chicken-and-egg-trusting-the-ca-before-you-trust-the-host).
-
-## Why per-device CAs
-
-You may notice each HaLOS device has a different CA — you install one per device on your workstation. That's a deliberate trade.
-
-The alternative — one shared CA across an entire fleet — requires putting the same CA *private key* on every device, so that any one of them can sign leaves your workstation will accept. If any one device is then compromised (physical theft, an exposed service exploited, a misconfigured permission), the attacker has the keys to mint a valid certificate for *any device in the fleet* and impersonate it.
-
-Per-device CAs cost you N trust-anchor entries on your workstation in exchange for blast-radius isolation: a compromised device only burns its own anchor. Removing the anchor from your trust store is a one-line undo per device.
-
-Operators who explicitly want this trade — typically because they already maintain an internal corporate CA with proper key management on a dedicated signing host — can configure a custom CA on individual devices. See [the custom CA section in docs/CERTS.md](https://github.com/halos-org/halos-core-containers/blob/main/docs/CERTS.md#installing-a-custom-ca) for the security model.
 
 ## Removing the trust anchor
 
