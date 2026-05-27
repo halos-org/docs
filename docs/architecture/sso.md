@@ -69,6 +69,8 @@ sequenceDiagram
 
 OIDC clients are registered with Authelia via configuration snippets. When an OIDC-enabled app is installed, its package drops a YAML snippet into `/etc/halos/oidc-clients.d/`. Authelia's prestart script merges all snippets into a single configuration file.
 
+The OIDC `iss` (issuer) claim is bound to one **canonical hostname** per device — every OIDC client validates `iss` against a single configured URL, per the OIDC specification. This is why the browser briefly visits the canonical hostname during OIDC login regardless of which hostname the user originally typed. For LAN-only deployments the shipped default of `${hostname}.local` is sufficient. Reaching the device from outside the LAN requires the canonical to resolve from the remote network — see [Remote Access](../user-guide/remote-access-vpn.md) for the practical patterns.
+
 ### No Auth
 
 Applications can opt out of authentication entirely. They are accessible without login but still benefit from port-based routing and TLS.
