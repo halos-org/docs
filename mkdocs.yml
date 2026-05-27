@@ -88,6 +88,7 @@ nav:
     - GPS: user-guide/gps.md
     - App Data and Migration: user-guide/app-data.md
     - Networking: user-guide/networking.md
+    - Remote Access: user-guide/remote-access-vpn.md
     - Troubleshooting: user-guide/troubleshooting.md
   - Architecture:
     - Overview: architecture/overview.md

@@ -64,6 +64,10 @@ After changing the hostname:
 - The old `.local` name stops resolving. Update your bookmarks.
 - TLS certificates are regenerated on next service restart to cover the new hostname.
 
+### Reaching the device from outside the LAN
+
+mDNS only works on the LAN. For VPN or other off-LAN access, see [Remote Access](remote-access-vpn.md).
+
 ## Troubleshooting network issues
 
 **mDNS not resolving**: Some networks or client devices have issues with `.local` resolution. Try accessing by IP address instead. Check your router's DHCP client list for the device's IP.
