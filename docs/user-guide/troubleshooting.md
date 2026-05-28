@@ -35,6 +35,8 @@ See [First Boot — Certificate warning](../getting-started/first-boot.md#certif
 
 **Symptom**: After re-flashing the device, your browser shows a TLS error (e.g. `NET::ERR_CERT_AUTHORITY_INVALID`) and no "Proceed anyway" link is offered. The page mentions HSTS — for example, "You cannot visit halosdev.local right now because the website uses HSTS."
 
+![Brave warning page after re-flash, with HSTS notice and no proceed-anyway option](../assets/images/brave_hsts_warning.png)
+
 **Cause**: Re-flashing regenerates the device's Certificate Authority, so the leaf certificate is signed by a CA your browser no longer recognises. Separately, your browser may have an **HSTS** pin cached from an earlier visit, which makes Chrome/Brave/Edge refuse the usual click-through bypass.
 
 **Solution** — clear the HSTS pin for the hostname:
