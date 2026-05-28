@@ -109,3 +109,5 @@ If you decommission a HaLOS device or no longer want to trust it, remove the CA 
 - **Firefox**: Preferences → Certificates → View Certificates → Authorities → select → Delete or Distrust.
 
 Subsequent visits to the device will fall back to "Not secure", as if you never installed the CA.
+
+Re-flashing a device has the same effect: the new image generates a fresh CA, so any CA you previously installed for that hostname is now stale. Remove the old CA before installing the new one. Browsers may additionally have cached an HSTS pin from the previous image, which blocks the usual click-through bypass — see [Troubleshooting → Browser refuses to load the device after re-flashing](troubleshooting.md#browser-refuses-to-load-the-device-after-re-flashing).

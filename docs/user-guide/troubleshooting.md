@@ -31,6 +31,33 @@ Accept the certificate warning for each port as you encounter it — the same ce
 
 See [First Boot — Certificate warning](../getting-started/first-boot.md#certificate-warning) for browser-specific instructions.
 
+## Browser refuses to load the device after re-flashing
+
+**Symptom**: After re-flashing the device, your browser shows a TLS error (e.g. `NET::ERR_CERT_AUTHORITY_INVALID`) and no "Proceed anyway" link is offered. The page mentions HSTS — for example, "You cannot visit halosdev.local right now because the website uses HSTS."
+
+![Brave warning page after re-flash, with HSTS notice and no proceed-anyway option](../assets/images/brave_hsts_warning.png)
+
+**Cause**: Re-flashing regenerates the device's Certificate Authority, so the leaf certificate is signed by a CA your browser no longer recognises. Separately, your browser may have an **HSTS** pin cached from an earlier visit, which makes Chrome/Brave/Edge refuse the usual click-through bypass.
+
+**Solution** — clear the HSTS pin for the hostname:
+
+=== "Chrome / Brave / Edge"
+
+    1. Open `chrome://net-internals/#hsts` (Brave: `brave://net-internals/#hsts`, Edge: `edge://net-internals/#hsts`).
+    2. Scroll to **Delete domain security policies**.
+    3. Enter the device hostname (e.g. `halos.local`) and click **Delete**.
+    4. Reload the page — you'll get the normal "Not secure" warning, which you can now click through.
+
+=== "Firefox"
+
+    Firefox doesn't ship with HSTS preloaded for `.local` hostnames and typically isn't affected. If it is, clear the site-specific settings via **Preferences → Privacy & Security → Cookies and Site Data → Manage Data**, remove the entry for your device, and restart Firefox.
+
+=== "Safari"
+
+    Quit Safari, then remove the cached HSTS entry: `rm ~/Library/Cookies/HSTS.plist` and reopen Safari.
+
+If you previously installed the device's CA on your workstation, the *old* CA is now stale and should be removed before installing the new one — see [Trust the device → Removing the trust anchor](trust-the-device.md#removing-the-trust-anchor).
+
 ## Container app store is empty
 
 **Symptom**: The Container Apps section in Cockpit shows no applications.
