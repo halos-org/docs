@@ -37,7 +37,13 @@ See [First Boot — Certificate warning](../getting-started/first-boot.md#certif
 
 ![Brave warning page after re-flash, with HSTS notice and no proceed-anyway option](../assets/images/brave_hsts_warning.png)
 
-**Cause**: Re-flashing regenerates the device's Certificate Authority, so the leaf certificate is signed by a CA your browser no longer recognises. Separately, your browser may have an **HSTS** pin cached from an earlier visit, which makes Chrome/Brave/Edge refuse the usual click-through bypass.
+**Cause**: One of the apps behind the device proxy (Signal K Server in particular) used to emit a `Strict-Transport-Security` header on every response. As soon as your browser visited any per-app port — for example when you opened a Signal K plugin from the dashboard — Chromium-family browsers cached that HSTS state for the whole `halosdev.local` host (including subdomains) for a year. From then on, *any* TLS error on the host became non-overridable: no "Proceed anyway" link, only the `thisisunsafe` keystroke.
+
+Re-flashing the device makes the symptom visible because the regenerated leaf certificate trips the HSTS-locked error, but the underlying cause is the cached HSTS pin from the earlier visit, not the cert rotation itself.
+
+!!! info "Already fixed on current HaLOS versions"
+
+    HaLOS now strips `Strict-Transport-Security` at the Traefik proxy before responses reach the browser, so devices running an up-to-date `halos-core-containers` package will not establish new HSTS state. If you upgraded an existing device and have HSTS pinned from a previous visit, you still need to clear it once using the steps below — but the lockout will not recur.
 
 **Solution** — clear the HSTS pin for the hostname:
 
