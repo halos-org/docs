@@ -30,9 +30,9 @@ All headless images and the `Halos-Desktop-Marine-HALPI2-AP` desktop variant cre
 - **Network name**: `Halos-XXXX` (XXXX is unique to your device)
 - **Password**: `halos1234`
 
-This allows you to connect and configure the device without Ethernet. Once connected to the AP, access the web interface at `https://halos.local/` and configure a regular WiFi connection through Cockpit → Networking.
+This lets you reach the device without Ethernet. The hotspot has no internet of its own, so connect to it and open Cockpit at `https://halos.local:9090/`, then configure a WiFi client connection through Cockpit → Networking.
 
-After configuring a WiFi client connection, the access point is no longer needed for initial setup. Consult NetworkManager documentation for running AP and client mode simultaneously.
+When the device joins a WiFi network, it keeps the hotspot running and acts as a client at the same time (concurrent AP and client). To do this it moves the hotspot onto the client network's channel, so a device connected to the hotspot may briefly disconnect and reconnect on its own. For the full first-time walkthrough, see [First Boot — WiFi access point](../getting-started/first-boot.md#wifi-access-point-headless-images-and-the-ap-desktop-variant).
 
 ## Ethernet
 
