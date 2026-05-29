@@ -64,6 +64,10 @@ After changing the hostname:
 - The old `.local` name stops resolving. Update your bookmarks.
 - TLS certificates are regenerated on next service restart to cover the new hostname.
 
+### One interface per network
+
+Don't connect the device to the same network over both Ethernet and WiFi at the same time. On a multi-homed host, Avahi hears its own mDNS announcements echoed between interfaces and renames the device (e.g. to `halos-2.local`), after which `halos.local` stops resolving. If you need both interfaces active, put them on different networks. See [Troubleshooting — Device disappears or shows up as `halos-2.local`](troubleshooting.md#device-disappears-or-shows-up-as-halos-2local).
+
 ### Reaching the device from outside the LAN
 
 mDNS only works on the LAN. For VPN or other off-LAN access, see [Remote Access](remote-access-vpn.md).
