@@ -43,7 +43,7 @@ Headless images and the [AP desktop variant](choosing-an-image.md#access-point-v
 1. On your laptop or phone, connect to the **`Halos-XXXX`** hotspot (password: `halos1234`).
 2. Open **[https://halos.local:9090/](https://halos.local:9090/)**. This is Cockpit, which runs without containers and is reachable straight away.
 3. Log in with the system credentials: username `pi`, password `halos`.
-4. Go to **Networking** and connect the device to a WiFi network that has internet access.
+4. Go to **Networking**, click **WiFi (wlan0)**, pick a network with internet access, enter the password, and click **Add**. For more detail, see [WiFi through Cockpit](../user-guide/networking.md#wifi-through-cockpit).
 
 When the device joins your network, it keeps the `Halos-XXXX` hotspot running and acts as a WiFi client at the same time. To do this it moves the hotspot onto your network's channel, so your laptop may **drop off `Halos-XXXX` for a few seconds and then reconnect on its own**. This is normal — wait for the connection to come back.
 

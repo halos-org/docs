@@ -17,9 +17,10 @@ Headless images have no desktop environment, so WiFi must be configured through 
 On any image, you can configure WiFi through the Cockpit NetworkManager module:
 
 1. Open Cockpit → Networking.
-2. Click on the WiFi interface.
-3. Select a network from the list of available networks.
-4. Enter the password and connect.
+2. Click **WiFi (wlan0)**.
+3. Wait for the list of available networks to appear.
+4. Click your network.
+5. Enter the password and click **Add**.
 
 ![WiFi Configuration](../assets/images/cockpit_networkmanager_wifi.jpg)
 
