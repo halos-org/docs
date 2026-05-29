@@ -17,36 +17,41 @@ The total time from power-on to a working web interface is typically **2–3 min
 
 ## Connecting to HaLOS
 
-### Option 1: Ethernet (recommended)
+How you reach the device for the first time depends on your image and whether Ethernet is available. Pick the one that matches your setup.
 
-1. Connect an Ethernet cable between your Raspberry Pi and your local network. This provides both internet access (for downloading containers) and local access.
+### With Ethernet (recommended, any image)
+
+1. Connect an Ethernet cable between the Raspberry Pi and your local network. This gives the device both internet access (for downloading containers) and local access.
 2. Wait 2–3 minutes for containers to download and start.
-3. Open a browser and go to **[https://halos.local/](https://halos.local/)**.
+3. Open **[https://halos.local/](https://halos.local/)**.
 
 mDNS (`.local` hostname resolution) works on most operating systems out of the box. If `halos.local` doesn't resolve, check your router's DHCP client list for the device's IP address and use that instead.
 
-### Option 2: Desktop WiFi (Desktop images with a display)
+### Desktop WiFi (Desktop images with a display)
 
-If you're using a Desktop image with a monitor, keyboard, and mouse connected to the Pi, you can connect to WiFi directly from the desktop — just like any desktop Linux:
+With a monitor, keyboard, and mouse connected to the Pi, connect to WiFi from the desktop, just like any desktop Linux:
 
 1. Click the NetworkManager applet in the top panel (right edge of the screen).
 2. Select your WiFi network and enter the password.
 3. Wait 2–3 minutes for containers to download and start.
-4. Open a browser on the Pi or another device and go to **[https://halos.local/](https://halos.local/)**.
+4. Open **[https://halos.local/](https://halos.local/)** on the Pi or another device on the same network.
 
-### Option 3: WiFi access point (all headless images and AP desktop variant)
+### WiFi access point (headless images and the AP desktop variant)
 
-All headless images and the [AP desktop variant](choosing-an-image.md#access-point-variant) create a local WiFi hotspot on first boot — but this hotspot does **not** provide internet access. You need to configure a WiFi connection first:
+Headless images and the [AP desktop variant](choosing-an-image.md#access-point-variant) start their own WiFi hotspot on first boot, so you can reach the device without Ethernet or a display. The hotspot has **no internet** of its own — the goal of this step is to use it to point the device at a WiFi network that does.
 
-1. On your laptop or phone, connect to the **`Halos-XXXX`** WiFi network (password: `halos1234`).
-2. Open **[https://halos.local:9090/](https://halos.local:9090/)** — this is Cockpit, which runs natively without containers.
-3. Log in with system credentials: username `pi`, password `halos`.
+1. On your laptop or phone, connect to the **`Halos-XXXX`** hotspot (password: `halos1234`).
+2. Open **[https://halos.local:9090/](https://halos.local:9090/)**. This is Cockpit, which runs without containers and is reachable straight away.
+3. Log in with the system credentials: username `pi`, password `halos`.
 4. Go to **Networking** and connect the device to a WiFi network that has internet access.
-5. Wait 2–3 minutes for the container images to download.
-6. Open **[https://halos.local/](https://halos.local/)** to access the main web interface.
+
+When the device joins your network, it keeps the `Halos-XXXX` hotspot running and acts as a WiFi client at the same time. To do this it moves the hotspot onto your network's channel, so your laptop may **drop off `Halos-XXXX` for a few seconds and then reconnect on its own**. This is normal — wait for the connection to come back.
+
+5. Wait 2–3 minutes for the container images to download and start.
+6. Open **[https://halos.local/](https://halos.local/)** to reach the main web interface.
 
 !!! tip
-    After the device is connected to your WiFi network, you can switch your own laptop/phone back to the same WiFi network and access HaLOS from there.
+    You can stay on the `Halos-XXXX` hotspot to finish setup, or switch your laptop to the WiFi network you just configured — that network gives your laptop internet access too, and `halos.local` works from there as well.
 
 ## Certificate warning
 
