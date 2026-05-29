@@ -141,6 +141,21 @@ If you've forgotten the new hostname, find the device by:
 - Connecting a monitor and keyboard to see the login prompt (which shows the hostname)
 - Scanning the network: `ping -c1 halos.local` (if you haven't changed it) or use a network scanner
 
+## Device disappears or shows up as `halos-2.local`
+
+**Symptom**: `halos.local` stops resolving, or the device shows up under a numbered name like `halos-2.local`. This may happen when the device is connected to the same network over both Ethernet and WiFi.
+
+**Cause**: With more than one interface on the same network, Avahi can register the hostname on each interface separately. The later registration finds the name already taken and falls back to a numbered variant (`halos-2.local`). If the interface holding the plain `halos.local` name is then disabled, only the numbered name is left advertised.
+
+**Solution**: Keep a single interface on a given network — disconnect one, or put the interfaces on different networks. Then restart Avahi (or reboot) so the plain hostname re-registers:
+
+```bash
+sudo systemctl restart avahi-daemon
+```
+
+!!! note
+    This is mDNS behaviour on multi-homed hosts, not a HaLOS bug. Both interfaces on one network usually works fine; the rename only shows up in corner cases.
+
 ## HALPI2 drops to initramfs on CM5 eMMC
 
 **Symptom**: After flashing a HALPI2 image to a Compute Module 5's eMMC, the system drops to an `initramfs` BusyBox prompt instead of booting normally. The same image works fine when flashed to an NVMe SSD.
