@@ -137,23 +137,18 @@ If you've forgotten the new hostname, find the device by:
 
 ## Device disappears or shows up as `halos-2.local`
 
-**Symptom**: `halos.local` stops resolving, or the device starts appearing under a numbered name like `halos-2.local`. This often happens after connecting the device to the same network over both Ethernet and WiFi at once.
+**Symptom**: `halos.local` stops resolving, or the device shows up under a numbered name like `halos-2.local`. This may happen when the device is connected to the same network over both Ethernet and WiFi.
 
-**Cause**: When a device is on the same network through two interfaces (wired and wireless) at the same time, its mDNS announcements sent on one interface are heard back on the other. Avahi reads its own echo as a second device claiming the same name, and defensively renames itself by appending a number. The original `.local` name is then claimed by nobody and no longer resolves.
+**Cause**: With more than one interface on the same network, Avahi can register the hostname on each interface separately. The later registration finds the name already taken and falls back to a numbered variant (`halos-2.local`). If the interface holding the plain `halos.local` name is then disabled, only the numbered name is left advertised.
 
-**Solution**: Use a single interface per network. Either:
-
-- Disconnect one interface — leave the device on Ethernet **or** WiFi, not both on the same network; or
-- Put the two interfaces on **different** networks (subnets), so each name is announced only once per network.
-
-After fixing the connection, restart Avahi (or reboot) so the original hostname re-registers:
+**Solution**: Keep a single interface on a given network — disconnect one, or put the interfaces on different networks. Then restart Avahi (or reboot) so the plain hostname re-registers:
 
 ```bash
 sudo systemctl restart avahi-daemon
 ```
 
 !!! note
-    This is a limitation of mDNS on multi-homed hosts, not a HaLOS bug. The same constraint applies to any Avahi/Bonjour device bridged onto one network through two interfaces. It cannot be worked around in software while both interfaces share a subnet.
+    This is mDNS behaviour on multi-homed hosts, not a HaLOS bug. Both interfaces on one network usually works fine; the rename only shows up in corner cases.
 
 ## HALPI2 drops to initramfs on CM5 eMMC
 
