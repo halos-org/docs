@@ -12,70 +12,17 @@ The cleaner path is to install the device's CA on your workstation once. After t
 
 Each HaLOS device has its own CA. If you have several devices, you install one CA per device on your workstation.
 
-## Download the CA
+## Install the CA
 
-The active CA is published by the device at:
+Each device serves a guided installer at:
 
 ```
-https://<your-device>/halos-ca.crt
+https://<your-device>/ca/
 ```
 
-Open that URL in your browser. The browser offers to download the file, and on most platforms opens the OS-level certificate install dialog directly.
+Open that URL and follow the steps for your platform. The page detects your operating system, covers macOS, Windows, Linux, iOS, Android, and Firefox, and fills in the exact filename your device saves — that filename embeds the device's hostname, so several devices' CAs stay easy to tell apart in your trust store.
 
-You'll get a "Not secure" warning on this first visit — that's the chicken-and-egg of trusting the CA before you trust the host. Click through. If you want stronger guarantees, see [Verifying the fingerprint](#verifying-the-fingerprint) below.
-
-## Install on your workstation
-
-### macOS
-
-1. Open the downloaded `halos-ca.crt` — **Keychain Access** opens.
-2. Choose the **System** keychain when prompted (not Login — System is what Safari and the system trust chain consult).
-3. After import, find the certificate in Keychain Access, double-click it, expand **Trust**, and set **When using this certificate** to **Always Trust**.
-4. Close the window; macOS prompts for your admin password to save the trust setting.
-5. Restart any open browsers.
-
-Verify by visiting `https://<your-device>/` — Safari should now show a closed padlock with no warnings.
-
-### Windows
-
-1. Double-click the downloaded `halos-ca.crt` — the **Certificate Import Wizard** opens.
-2. Click **Install Certificate**, choose **Local Machine** (requires admin), click **Next**.
-3. Select **Place all certificates in the following store**, click **Browse**, choose **Trusted Root Certification Authorities**, click **OK**, then **Next** and **Finish**.
-4. Windows shows a security warning confirming you trust the certificate — click **Yes**.
-5. Restart any open browsers.
-
-Edge and Chrome use the Windows store and will pick this up immediately. Firefox has its own trust store — see [Firefox](#firefox) below.
-
-### Linux (Debian / Ubuntu / HaLOS workstation)
-
-```bash
-sudo cp halos-ca.crt /usr/local/share/ca-certificates/halos-ca.crt
-sudo update-ca-certificates
-```
-
-This populates `/etc/ssl/certs/` with the new anchor. Chromium and most CLI tools (`curl`, `wget`, `git`) pick it up immediately. Firefox has its own trust store — see [Firefox](#firefox) below.
-
-### iOS / iPadOS
-
-1. AirDrop or email the `halos-ca.crt` file to the device.
-2. Open the file — iOS prompts to download a **Configuration Profile**.
-3. Open **Settings → General → VPN & Device Management** (sometimes called Profile Management), find the downloaded profile, and tap **Install**.
-4. Open **Settings → General → About → Certificate Trust Settings** and toggle the HaLOS CA to **on**. This last step is required — without it, Safari ignores the installed root.
-5. Restart Safari.
-
-### Android
-
-Android's user-installed trust store is honored by Chrome (for Web pages), by Firefox, and by most stock browsers. It is **not** honored by app-embedded WebViews (so apps that authenticate against your HaLOS device may still fail), and starting with Android 7 it requires apps to opt in via `network_security_config`.
-
-For the install procedure and the constraints, see the [Android Network Security Configuration documentation](https://developer.android.com/privacy-and-security/security-config).
-
-### Firefox
-
-Firefox uses its own trust store and does not pick up OS-level installations.
-
-1. Open **Preferences → Privacy & Security → Certificates → View Certificates**.
-2. Switch to the **Authorities** tab and click **Import**.
-3. Select `halos-ca.crt`, check **Trust this CA to identify websites**, click **OK**.
+You'll get a "Not secure" warning on this first visit — that's the chicken-and-egg of trusting the CA before you trust the host. Click through it. If you want stronger guarantees before you install, verify the fingerprint first.
 
 ## Verifying the fingerprint
 
@@ -98,6 +45,25 @@ The two fingerprints must match exactly. If they don't, abort — the file you d
 
 The canonical version of this procedure lives in the developer docs: [docs/CERTS.md → Chicken-and-egg](https://github.com/halos-org/halos-core-containers/blob/main/docs/CERTS.md#chicken-and-egg-trusting-the-ca-before-you-trust-the-host).
 
+## Regenerate the device CA
+
+A device's CA is created once and then frozen the first time a client downloads it. This "adoption" keeps the CA stable, so anchors you have already installed keep working. The CA's name embeds the device's hostname at the moment it was created. If you later rename the device — or it first booted before it had its final hostname — the name can read stale, and a device imaged with an older HaLOS may carry a generic `HaLOS Device CA` name with no hostname at all.
+
+A stale name is cosmetic: HTTPS still validates, because browsers check the TLS leaf's hostnames, not the CA's name. Regenerate only when the stale name actually gets in your way — for example, you manage several devices and can no longer tell their CAs apart.
+
+To mint a fresh CA with the current hostname, reset the adoption sentinel over SSH and re-run certificate management:
+
+```bash
+ssh <your-device> 'echo -n pending | sudo tee \
+  /var/lib/container-apps/halos-core-containers/data/halos-core-containers/certs/ca/adoption'
+ssh <your-device> 'sudo systemctl start halos-manage-certs.service'
+```
+
+The next run regenerates the CA with the current hostname, re-signs the leaf, and reloads Traefik and Cockpit on its own — no container restart, and no need to delete `ca.crt` or `ca.key`.
+
+!!! warning
+    This replaces the CA. Every client that trusted the old one must remove it (see below) and install the new CA, which now downloads under a new, hostname-specific filename.
+
 ## Removing the trust anchor
 
 If you decommission a HaLOS device or no longer want to trust it, remove the CA from your workstation:
@@ -106,6 +72,7 @@ If you decommission a HaLOS device or no longer want to trust it, remove the CA 
 - **Windows**: `certmgr.msc` → Trusted Root Certification Authorities → Certificates → find and delete.
 - **Linux**: `sudo rm /usr/local/share/ca-certificates/halos-ca.crt && sudo update-ca-certificates --fresh`.
 - **iOS**: Settings → General → VPN & Device Management → tap the profile → Remove Profile.
+- **Android**: Settings → search **credentials** → **User credentials** → tap the HaLOS CA → **Remove** (on stock Android: Security → Encryption & credentials → User credentials; the exact path varies by vendor).
 - **Firefox**: Preferences → Certificates → View Certificates → Authorities → select → Delete or Distrust.
 
 Subsequent visits to the device will fall back to "Not secure", as if you never installed the CA.
