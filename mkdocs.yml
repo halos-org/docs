@@ -87,6 +87,7 @@ nav:
     - Marine Apps: user-guide/marine-apps.md
     - GPS: user-guide/gps.md
     - App Data and Migration: user-guide/app-data.md
+    - Migrating from OpenPlotter: user-guide/openplotter-migration.md
     - Networking: user-guide/networking.md
     - Remote Access: user-guide/remote-access-vpn.md
     - Troubleshooting: user-guide/troubleshooting.md
