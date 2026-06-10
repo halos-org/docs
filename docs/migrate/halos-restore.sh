@@ -28,6 +28,11 @@ readonly BACKUP_SUBDIR="halos-migration"
 readonly CA_ROOT=/var/lib/container-apps
 
 readonly SK_PKG=marine-signalk-server-container
+readonly INFLUX_PKG=marine-influxdb-container
+readonly GRAFANA_PKG=marine-grafana-container
+readonly INFLUX_IMG=influxdb:2.9.1
+readonly INFLUX_CONTAINER=influxdb
+readonly GRAFANA_CONTAINER=grafana
 
 # --- output helpers ----------------------------------------------------------
 
@@ -130,7 +135,7 @@ validate_manifest() {
 	[[ "$ver" == "$SUPPORTED_FORMAT_VERSION" ]] ||
 		die "Backup format version '$ver' is not supported by this restore script (expected $SUPPORTED_FORMAT_VERSION). Use a matching version of the migration scripts."
 	[[ "$complete" == "yes" ]] ||
-		die "Backup is marked incomplete (no completeness marker). Re-run the backup until it prints SAFE TO REFLASH."
+		die "Backup is marked incomplete (no completeness marker). Re-run the backup until it prints MIGRATION BACKUP COMPLETE AND VERIFIED."
 	info "Backup: from $(mf_get source_host) (user $(mf_get source_user)), created $(mf_get created)."
 }
 
@@ -221,6 +226,316 @@ restore_home_tar() {
 	$SUDO chown -R "$REAL_USER:$REAL_USER" "$dest"
 }
 
+# --- InfluxDB ----------------------------------------------------------------
+
+ensure_pkg() {
+	local pkg="$1"
+	pkg_installed "$pkg" && return 0
+	info "Installing $pkg..."
+	$SUDO apt-get update -qq
+	$SUDO apt-get install -y "$pkg" >/dev/null
+}
+
+# Ensure the package has run once so its data dir / env exist, then leave the
+# service stopped for the swap.
+init_then_stop_influx() {
+	if [[ ! -d "$CA_ROOT/$INFLUX_PKG/data/db" || ! -f "/etc/container-apps/$INFLUX_PKG/env" ]]; then
+		info "Letting InfluxDB initialize once..."
+		$SUDO systemctl start "$INFLUX_PKG.service"
+		wait_container_healthy "$INFLUX_CONTAINER" 60 || true
+	fi
+	$SUDO systemctl stop "$INFLUX_PKG.service" 2>/dev/null || true
+	$SUDO docker rm -f "$INFLUX_CONTAINER" >/dev/null 2>&1 || true
+}
+
+wait_container_healthy() {
+	local name="$1" timeout="${2:-60}" i
+	for i in $(seq 1 "$timeout"); do
+		[[ "$($SUDO docker inspect -f '{{.State.Health.Status}}' "$name" 2>/dev/null)" == healthy ]] && return 0
+		sleep 1
+	done
+	return 1
+}
+
+# Mint a fresh operator token from the swapped-in boltdb (server must be down).
+# Echoes: "<username>|<orgname>|<token>"
+mint_operator_token() {
+	local db="$1" user org out token
+	user="$(recovery_list "$db" user)"
+	org="$(recovery_list "$db" org)"
+	[[ -n "$user" && -n "$org" ]] || die "Could not read a user/org from the boat InfluxDB boltdb."
+	out="$($SUDO docker run --rm -v "$db:/var/lib/influxdb2" "$INFLUX_IMG" \
+		influxd recovery auth create-operator --username "$user" --org "$org" \
+		--bolt-path /var/lib/influxdb2/influxd.bolt 2>/dev/null)"
+	token="$(printf '%s\n' "$out" | grep -oE '[A-Za-z0-9_-]{80,}==' | head -1)"
+	[[ -n "$token" ]] || die "Failed to mint an InfluxDB operator token from the boltdb."
+	printf '%s|%s|%s' "$user" "$org" "$token"
+}
+
+# First data row's Name from `influxd recovery <kind> list` (server down).
+recovery_list() {
+	local db="$1" kind="$2"
+	$SUDO docker run --rm -v "$db:/var/lib/influxdb2" "$INFLUX_IMG" \
+		influxd recovery "$kind" list --bolt-path /var/lib/influxdb2/influxd.bolt 2>/dev/null |
+		awk 'NR>1 && NF>=2 {print $2; exit}'
+}
+
+iexec() { $SUDO docker exec "$INFLUX_CONTAINER" influx "$@"; }
+
+restore_influxdb() {
+	[[ "$(mf_get influxdb)" == "present" ]] || {
+		info "No InfluxDB data in backup — skipping."
+		return 0
+	}
+	[[ -f "$SRC/influxdb2.tar" ]] || die "Manifest claims InfluxDB data but influxdb2.tar is missing."
+
+	ensure_pkg "$INFLUX_PKG"
+	init_then_stop_influx
+
+	local db="$CA_ROOT/$INFLUX_PKG/data/db"
+	info "Swapping in boat InfluxDB data (this can take a while for large datasets)..."
+	preserve_default "$db"
+	$SUDO mkdir -p "$db"
+	$SUDO tar -C "$db" -xf "$SRC/influxdb2.tar"
+	mirror_default_ownership "$db"
+
+	info "Minting a fresh operator token from the boat database..."
+	local triple user org token
+	triple="$(mint_operator_token "$db")"
+	user="${triple%%|*}"
+	token="${triple##*|}"
+	org="${triple#*|}"
+	org="${org%|*}"
+
+	inject_influx_token "$token"
+
+	info "Starting InfluxDB with the boat data..."
+	$SUDO systemctl start "$INFLUX_PKG.service"
+	wait_container_healthy "$INFLUX_CONTAINER" 90 ||
+		die "InfluxDB did not become healthy. Boat data may be from a newer InfluxDB than HaLOS ships ($INFLUX_IMG). Default preserved at $db.halos-default. Check: sudo docker logs $INFLUX_CONTAINER"
+
+	align_to_marine "$org" "$token"
+	note "InfluxDB: boat data restored (source user '$user', org '$org' renamed to 'marine')."
+}
+
+mirror_default_ownership() {
+	local db="$1" ref="$1.halos-default" owner mode
+	if [[ -e "$ref" ]]; then
+		owner="$($SUDO stat -c '%U:%G' "$ref")"
+		mode="$($SUDO stat -c '%a' "$ref")"
+	else
+		owner="$REAL_USER:root"
+		mode=700
+	fi
+	$SUDO chown -R "$owner" "$db"
+	$SUDO chmod "$mode" "$db"
+}
+
+inject_influx_token() {
+	local token="$1" env="/etc/container-apps/$INFLUX_PKG/env"
+	[[ -f "$env" ]] || die "InfluxDB env file $env not found."
+	[[ -e "$env.halos-default" ]] || $SUDO cp "$env" "$env.halos-default"
+	if $SUDO grep -q '^INFLUXDB_ADMIN_TOKEN=' "$env"; then
+		$SUDO sed -i "s|^INFLUXDB_ADMIN_TOKEN=.*|INFLUXDB_ADMIN_TOKEN=$token|" "$env"
+	else
+		printf 'INFLUXDB_ADMIN_TOKEN=%s\n' "$token" | $SUDO tee -a "$env" >/dev/null
+	fi
+}
+
+# Rename the telemetry org+bucket to "marine" so HaLOS' provisioned datasource
+# serves the history, and add a v1 DBRP for InfluxQL/Grafana compatibility.
+align_to_marine() {
+	local org="$1" token="$2"
+	wait_influx_ready "$token"
+
+	local org_id buck
+	org_id="$(iexec org list --token "$token" 2>/dev/null | awk -v n="$org" 'NR>1 && $2==n {print $1; exit}')"
+	buck="$(select_telemetry_bucket "$org" "$token")"
+	local buck_id="${buck%%|*}" buck_name="${buck##*|}"
+	[[ -n "$org_id" && -n "$buck_id" ]] || die "Could not resolve org/bucket ids for the rename."
+
+	if [[ "$org" != marine ]]; then
+		iexec org update --id "$org_id" --name marine --token "$token" >/dev/null 2>&1 ||
+			warn "Could not rename org '$org' to 'marine' (already taken?). HaLOS' default datasource may not resolve the data."
+	fi
+	if [[ "$buck_name" != marine ]]; then
+		iexec bucket update --id "$buck_id" --name marine --token "$token" >/dev/null 2>&1 ||
+			warn "Could not rename bucket '$buck_name' to 'marine'."
+	fi
+	iexec v1 dbrp create --bucket-id "$buck_id" --db marine --rp autogen --default \
+		--org marine --token "$token" >/dev/null 2>&1 ||
+		warn "Could not create the marine/autogen DBRP (may already exist)."
+
+	smoke_query "$token"
+}
+
+wait_influx_ready() {
+	local token="$1" i
+	for i in $(seq 1 30); do
+		iexec org list --token "$token" >/dev/null 2>&1 && return 0
+		sleep 2
+	done
+	die "InfluxDB is up but not answering authenticated queries with the minted token."
+}
+
+# Echo "<id>|<name>" of the telemetry bucket, prompting if more than one exists.
+select_telemetry_bucket() {
+	local org="$1" token="$2"
+	local -a buckets=()
+	mapfile -t buckets < <(iexec bucket list --org "$org" --token "$token" 2>/dev/null |
+		awk 'NR>1 && $2 !~ /^_/ {print $1"|"$2}')
+	case "${#buckets[@]}" in
+	0) die "No data buckets found in the boat InfluxDB." ;;
+	1) printf '%s' "${buckets[0]}" ;;
+	*)
+		warn "Multiple buckets found — choose the main telemetry bucket to map to 'marine':" >&2
+		local i=1 b
+		for b in "${buckets[@]}"; do
+			printf '   %d) %s\n' "$i" "${b##*|}" >&2
+			((i++))
+		done
+		local choice
+		read -r -p "Bucket to rename to 'marine' [1-${#buckets[@]}] " choice
+		if ! [[ "$choice" =~ ^[0-9]+$ ]] || ((choice < 1 || choice > ${#buckets[@]})); then
+			die "Invalid selection."
+		fi
+		printf '%s' "${buckets[$((choice - 1))]}"
+		;;
+	esac
+}
+
+smoke_query() {
+	local token="$1" out
+	out="$(iexec query 'from(bucket:"marine") |> range(start:-520w) |> first()' \
+		--org marine --token "$token" 2>/dev/null | grep -c _value || true)"
+	if (($(printf '%s' "${out:-0}") > 0)); then
+		info "Smoke test passed: historical telemetry is queryable in the 'marine' bucket."
+	else
+		warn "Smoke test returned no rows — the bucket may be empty or queries need a wider range."
+	fi
+}
+
+# --- Grafana -----------------------------------------------------------------
+
+grafana_ip() {
+	$SUDO docker inspect "$GRAFANA_CONTAINER" \
+		-f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' 2>/dev/null
+}
+
+restore_grafana() {
+	[[ "$(mf_get grafana)" == "present" ]] || {
+		info "No Grafana data in backup — skipping."
+		return 0
+	}
+	[[ -f "$SRC/grafana.db" ]] || {
+		warn "Manifest claims Grafana data but grafana.db is missing — skipping dashboards."
+		return 0
+	}
+	# The minted token lets the boat datasource authenticate against the new data.
+	local token
+	token="$($SUDO grep -E '^INFLUXDB_ADMIN_TOKEN=' "/etc/container-apps/$INFLUX_PKG/env" 2>/dev/null | cut -d= -f2-)"
+
+	ensure_pkg "$GRAFANA_PKG"
+	$SUDO systemctl start "$GRAFANA_PKG.service" 2>/dev/null || true
+	wait_container_healthy "$GRAFANA_CONTAINER" 60 || true
+
+	local ip
+	ip="$(grafana_ip)"
+	[[ -n "$ip" ]] || {
+		warn "Could not find the Grafana container IP — skipping dashboard import. Your data is still available via HaLOS' built-in marine dashboards."
+		return 0
+	}
+
+	info "Importing boat dashboards and datasources into Grafana..."
+	import_grafana "$SRC/grafana.db" "http://$ip:3000" "$token" || {
+		warn "Grafana import did not fully succeed. Your historical data is still available via HaLOS' built-in marine dashboards."
+		note "Grafana: import incomplete — see warnings above."
+		return 0
+	}
+	note "Grafana: boat dashboards and datasources imported."
+}
+
+# Re-create boat InfluxDB datasources (preserving UID, injecting the minted
+# token) and import boat dashboards via the Grafana HTTP API.
+import_grafana() {
+	local db="$1" url="$2" token="$3"
+	GRAFANA_URL="$url" GRAFANA_DB="$db" INFLUX_TOKEN="$token" \
+		python3 - <<'PY'
+import json, os, sqlite3, urllib.request, urllib.error, base64
+
+url = os.environ["GRAFANA_URL"].rstrip("/")
+db = os.environ["GRAFANA_DB"]
+token = os.environ.get("INFLUX_TOKEN", "")
+auth = base64.b64encode(b"admin:admin").decode()
+
+def call(method, path, payload):
+    req = urllib.request.Request(
+        url + path, data=json.dumps(payload).encode(),
+        method=method,
+        headers={"Content-Type": "application/json",
+                 "Authorization": "Basic " + auth})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return r.status, r.read().decode()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode()
+    except Exception as e:
+        return 0, str(e)
+
+con = sqlite3.connect(db)
+con.row_factory = sqlite3.Row
+
+ds_ok = ds_fail = 0
+for row in con.execute("SELECT uid,name,type,access,url,database,json_data FROM data_source"):
+    if (row["type"] or "") != "influxdb":
+        continue
+    jd = json.loads(row["json_data"] or "{}")
+    jd.setdefault("httpMode", "POST")
+    jd.setdefault("httpHeaderName1", "Authorization")
+    payload = {
+        "uid": row["uid"], "name": row["name"], "type": "influxdb",
+        "access": row["access"] or "proxy", "url": "http://influxdb:8086",
+        "database": row["database"], "jsonData": jd, "isDefault": False,
+        "secureJsonData": {"httpHeaderValue1": "Token " + token},
+    }
+    st, _ = call("POST", "/api/datasources", payload)
+    if st == 409:  # already exists -> not fatal
+        ds_ok += 1
+    elif 200 <= st < 300:
+        ds_ok += 1
+    else:
+        ds_fail += 1
+
+dash_ok = dash_fail = 0
+# Older Grafana stores dashboards as JSON in dashboard.data (is_folder=0).
+# Newer Grafana uses a different store and leaves this empty/absent; in that
+# case we simply import nothing — HaLOS ships its own marine dashboards.
+try:
+    rows = con.execute("SELECT data FROM dashboard WHERE is_folder=0").fetchall()
+except sqlite3.OperationalError:
+    rows = []
+    print("note: this Grafana version does not expose dashboards in dashboard.data")
+for row in rows:
+    try:
+        model = json.loads(row["data"])
+    except Exception:
+        dash_fail += 1
+        continue
+    model["id"] = None
+    st, _ = call("POST", "/api/dashboards/db",
+                 {"dashboard": model, "overwrite": True,
+                  "message": "Restored from OpenPlotter backup"})
+    if 200 <= st < 300:
+        dash_ok += 1
+    else:
+        dash_fail += 1
+
+print(f"datasources: {ds_ok} ok, {ds_fail} failed; dashboards: {dash_ok} ok, {dash_fail} failed")
+# Fail only if we could not import anything at all.
+raise SystemExit(0 if (ds_fail == 0 and dash_fail == 0) else 1)
+PY
+}
+
 # --- summary -----------------------------------------------------------------
 
 print_summary() {
@@ -252,6 +567,8 @@ main() {
 
 	restore_signalk
 	restore_opencpn
+	restore_influxdb
+	restore_grafana
 
 	print_summary
 	info "Done."
