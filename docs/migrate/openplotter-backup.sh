@@ -173,6 +173,8 @@ dir_bytes() {
 SK_BYTES=0
 INFLUX_BYTES=0
 GRAFANA_BYTES=0
+OPENCPN_CONF_BYTES=0
+OPENCPN_SHARE_BYTES=0
 OPENCPN_BYTES=0
 
 measure_sources() {
@@ -180,11 +182,9 @@ measure_sources() {
 	[[ -d "$USER_HOME/.signalk" ]] && SK_BYTES="$(dir_bytes "$USER_HOME/.signalk")"
 	[[ -d /var/lib/influxdb ]] && INFLUX_BYTES="$(dir_bytes /var/lib/influxdb)"
 	[[ -f /var/lib/grafana/grafana.db ]] && GRAFANA_BYTES="$(dir_bytes /var/lib/grafana/grafana.db)"
-	local oc=0 a b
-	a="$(dir_bytes "$USER_HOME/.opencpn")"
-	b="$(dir_bytes "$USER_HOME/.local/share/opencpn")"
-	oc=$((a + b))
-	OPENCPN_BYTES=$oc
+	OPENCPN_CONF_BYTES="$(dir_bytes "$USER_HOME/.opencpn")"
+	OPENCPN_SHARE_BYTES="$(dir_bytes "$USER_HOME/.local/share/opencpn")"
+	OPENCPN_BYTES=$((OPENCPN_CONF_BYTES + OPENCPN_SHARE_BYTES))
 }
 
 preflight() {
@@ -198,9 +198,15 @@ preflight() {
 	info "Source data total: $(bytes_to_h "$total"). USB free: $(human_free "$DEST_ROOT") (filesystem: ${fstype:-unknown})."
 
 	# FAT32 cannot hold a single file larger than 4 GiB — the InfluxDB archive
-	# is the one likely to exceed it.
-	if [[ "$fstype" == "vfat" || "$fstype" == "msdos" ]] && ((INFLUX_BYTES > FAT_FILE_LIMIT)); then
-		die "The USB stick is FAT32, which cannot store files larger than 4 GiB, but the InfluxDB data is $(bytes_to_h "$INFLUX_BYTES"). Reformat the stick as exFAT or ext4 and try again."
+	# is the one likely to exceed it. FUSE mounts (exFAT/NTFS drivers) report
+	# "fuseblk", hiding the real filesystem; those usually have no 4 GiB limit,
+	# so only warn.
+	if ((INFLUX_BYTES > FAT_FILE_LIMIT)); then
+		if [[ "$fstype" == "vfat" || "$fstype" == "msdos" ]]; then
+			die "The USB stick is FAT32, which cannot store files larger than 4 GiB, but the InfluxDB data is $(bytes_to_h "$INFLUX_BYTES"). Reformat the stick as exFAT or ext4 and try again."
+		elif [[ "$fstype" == "fuseblk" || -z "$fstype" ]]; then
+			warn "Could not confirm the USB filesystem type (${fstype:-unknown}). If the stick is FAT32 it cannot hold the $(bytes_to_h "$INFLUX_BYTES") InfluxDB archive — should the backup fail mid-write, reformat as exFAT or ext4."
+		fi
 	fi
 
 	# Require the stick to hold the data with a little headroom for tar overhead.
@@ -251,9 +257,11 @@ stop_services() {
 	done
 }
 
+# Restart in reverse stop order, so signalk.service comes up before its socket.
 start_services() {
-	local u
-	for u in "${STOPPED_SERVICES[@]}"; do
+	local i u
+	for ((i = ${#STOPPED_SERVICES[@]} - 1; i >= 0; i--)); do
+		u="${STOPPED_SERVICES[$i]}"
 		$SUDO systemctl start "$u" 2>/dev/null ||
 			warn "Could not restart $u — start it manually with: sudo systemctl start $u"
 	done
@@ -306,7 +314,10 @@ backup_grafana() {
 	}
 	info "Backing up Grafana dashboards..."
 	$SUDO cp "/var/lib/grafana/grafana.db" "$DEST/grafana.db"
-	$SUDO chmod a+r "$DEST/grafana.db"
+	# The DB holds datasource secrets; keep it owner-only for the user, who
+	# reads it without root on the restore side. No-op on FAT sticks.
+	$SUDO chown "$REAL_USER" "$DEST/grafana.db" 2>/dev/null || true
+	$SUDO chmod 600 "$DEST/grafana.db" 2>/dev/null || true
 }
 
 backup_opencpn() {
@@ -318,12 +329,12 @@ backup_opencpn() {
 	local ans
 	read -r -p "Is OpenCPN closed? [y/N] " ans
 	[[ "$ans" =~ ^[Yy]$ ]] || die "Close OpenCPN and re-run."
-	if [[ -d "$USER_HOME/.opencpn" ]]; then
+	if ((OPENCPN_CONF_BYTES > 0)); then
 		info "Backing up OpenCPN config..."
 		tar_dir "$USER_HOME/.opencpn" "$DEST/opencpn-config.tar"
 		warn_relocated_charts
 	fi
-	if [[ -d "$USER_HOME/.local/share/opencpn" ]]; then
+	if ((OPENCPN_SHARE_BYTES > 0)); then
 		info "Backing up OpenCPN plugin data..."
 		tar_dir "$USER_HOME/.local/share/opencpn" "$DEST/opencpn-share.tar"
 	fi
@@ -365,7 +376,8 @@ write_manifest() {
 }
 
 # Confirm each present domain produced a non-empty artifact, and that the
-# InfluxDB archive actually contains the boltdb (its core metadata file).
+# InfluxDB archive actually contains both the boltdb (metadata) and the
+# engine/ tree (the time-series data itself) at a plausible size.
 verify_backup() {
 	info "Verifying backup integrity..."
 	# Flush the archives to disk first so the read-backs below validate
@@ -383,15 +395,29 @@ verify_backup() {
 
 	((SK_BYTES > 0)) && check_artifact "Signal K" "$DEST/signalk.tar"
 	((GRAFANA_BYTES > 0)) && check_artifact "Grafana" "$DEST/grafana.db"
-	[[ -d "$USER_HOME/.opencpn" ]] && check_artifact "OpenCPN config" "$DEST/opencpn-config.tar"
-	[[ -d "$USER_HOME/.local/share/opencpn" ]] && check_artifact "OpenCPN share" "$DEST/opencpn-share.tar"
+	((OPENCPN_CONF_BYTES > 0)) && check_artifact "OpenCPN config" "$DEST/opencpn-config.tar"
+	((OPENCPN_SHARE_BYTES > 0)) && check_artifact "OpenCPN share" "$DEST/opencpn-share.tar"
 
 	if ((INFLUX_BYTES > 0)); then
 		check_artifact "InfluxDB" "$DEST/influxdb2.tar"
-		if [[ -s "$DEST/influxdb2.tar" ]] &&
-			! tar -tf "$DEST/influxdb2.tar" 2>/dev/null | grep -q 'influxd\.bolt'; then
-			err "InfluxDB archive is missing influxd.bolt — the data is incomplete."
-			ok=0
+		if [[ -s "$DEST/influxdb2.tar" ]]; then
+			local listing
+			listing="$(tar -tf "$DEST/influxdb2.tar" 2>/dev/null)" || listing=""
+			if ! grep -q 'influxd\.bolt' <<<"$listing"; then
+				err "InfluxDB archive is missing influxd.bolt — the data is incomplete."
+				ok=0
+			fi
+			# The boltdb is only metadata; the history lives under engine/.
+			if [[ -d /var/lib/influxdb/engine ]] && ! grep -q '^\./engine/' <<<"$listing"; then
+				err "InfluxDB archive is missing the engine/ data directory — the telemetry history is NOT in the backup."
+				ok=0
+			fi
+			local tar_size
+			tar_size="$(stat -c %s "$DEST/influxdb2.tar" 2>/dev/null || echo 0)"
+			if ((tar_size < INFLUX_BYTES / 2)); then
+				err "InfluxDB archive ($(bytes_to_h "$tar_size")) is far smaller than the measured source data ($(bytes_to_h "$INFLUX_BYTES")) — it looks truncated."
+				ok=0
+			fi
 		fi
 	fi
 
@@ -455,6 +481,10 @@ main() {
 	warn "outside ~/.opencpn, custom /etc configuration and any apps you"
 	warn "installed yourself are NOT included — copy those to the stick now if"
 	warn "you need them."
+	echo
+	warn "The backup contains credentials (Signal K user accounts, Grafana and"
+	warn "InfluxDB secrets). Treat the stick as sensitive and wipe it once the"
+	warn "migration is done."
 	echo
 	echo "Once you have also saved anything else you care about, you can"
 	echo "reflash. Keep the stick safe through the reflash, then run"
