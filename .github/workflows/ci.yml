@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint migration scripts
+        run: |
+          bash -n docs/migrate/*.sh
+          shellcheck docs/migrate/*.sh
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run mkdocs build --strict
+      - name: Verify scripts are served verbatim
+        run: |
+          for f in docs/migrate/*.sh; do
+            cmp "$f" "site/migrate/$(basename "$f")"
+          done
