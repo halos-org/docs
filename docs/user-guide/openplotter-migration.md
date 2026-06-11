@@ -38,7 +38,7 @@ The script stops Signal K, InfluxDB and Grafana for a consistent copy (and asks 
 followed by a reminder that this covers only the four migrated domains. If you do not see that banner, the backup is incomplete — re-run the script and resolve any error it reports. Remember the banner confirms only the migration backup; copy anything else you need (see the danger note above) before you reflash.
 
 !!! tip "Keep the stick safe"
-    Leave the USB stick plugged in, or set it aside somewhere safe. It is your only copy of the data until the restore on HaLOS succeeds.
+    Leave the USB stick plugged in, or set it aside somewhere safe. It is your only copy of the data until the restore on HaLOS succeeds. It also contains credentials (Signal K user accounts, Grafana and InfluxDB secrets), so don't hand it around — and wipe it once the migration is done.
 
 ## Step 2 — Flash HaLOS
 
@@ -78,6 +78,7 @@ When it finishes it prints a summary of what was restored.
 ## Troubleshooting
 
 - **"Backup is marked incomplete"** — the backup did not finish. Re-run `openplotter-backup.sh` on the source system until it prints `MIGRATION BACKUP COMPLETE AND VERIFIED`.
+- **A restore failed partway** — fix the problem it reported and run `halos-restore.sh` again; it re-extracts everything from the stick, and the `*.halos-default` copies from the first run are kept as the rollback state.
 - **InfluxDB does not become healthy on restore** — your OpenPlotter InfluxDB may be newer than the version HaLOS ships. The restore leaves your previous state at `…/data/db.halos-default`. Check `sudo docker logs influxdb`.
 - **No completion banner and the stick is full** — use a larger stick; the backup needs room for your whole InfluxDB history.
 
