@@ -353,7 +353,7 @@ restore_influxdb() {
 	$SUDO systemctl start "$INFLUX_PKG.service"
 	PENDING_RESTART=""
 	wait_container_healthy "$INFLUX_CONTAINER" 90 ||
-		die "InfluxDB did not become healthy. Boat data may be from a newer InfluxDB than HaLOS ships ($INFLUX_IMG). Default preserved at $db.halos-default. Check: sudo docker logs $INFLUX_CONTAINER"
+		die "InfluxDB did not become healthy with the restored data. Default preserved at $db.halos-default. Check: sudo docker logs $INFLUX_CONTAINER"
 
 	align_to_marine "$org" "$token"
 	note "InfluxDB: boat data restored (source user '$user', org '$org' renamed to 'marine')."

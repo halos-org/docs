@@ -79,7 +79,7 @@ When it finishes it prints a summary of what was restored.
 
 - **"Backup is marked incomplete"** — the backup did not finish. Re-run `openplotter-backup.sh` on the source system until it prints `MIGRATION BACKUP COMPLETE AND VERIFIED`.
 - **A restore failed partway** — fix the problem it reported and run `halos-restore.sh` again; it re-extracts everything from the stick, and the `*.halos-default` copies from the first run are kept as the rollback state.
-- **InfluxDB does not become healthy on restore** — your OpenPlotter InfluxDB may be newer than the version HaLOS ships. The restore leaves your previous state at `…/data/db.halos-default`. Check `sudo docker logs influxdb`.
+- **InfluxDB does not become healthy on restore** — InfluxDB could not open the restored data (a damaged copy, for example). The restore leaves the fresh HaLOS state at `…/data/db.halos-default`. Check `sudo docker logs influxdb`.
 - **No completion banner and the stick is full** — use a larger stick; the backup needs room for your whole InfluxDB history.
 
 ## Data locations
