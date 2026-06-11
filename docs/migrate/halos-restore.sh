@@ -267,7 +267,7 @@ mint_operator_token() {
 	out="$($SUDO docker run --rm -v "$db:/var/lib/influxdb2" "$INFLUX_IMG" \
 		influxd recovery auth create-operator --username "$user" --org "$org" \
 		--bolt-path /var/lib/influxdb2/influxd.bolt 2>/dev/null)"
-	token="$(printf '%s\n' "$out" | grep -oE '[A-Za-z0-9_-]{80,}==' | head -1)"
+	token="$(printf '%s\n' "$out" | grep -oE '[A-Za-z0-9_-]{80,}={0,2}' | head -1)"
 	[[ -n "$token" ]] || die "Failed to mint an InfluxDB operator token from the boltdb."
 	printf '%s|%s|%s' "$user" "$org" "$token"
 }
@@ -434,6 +434,11 @@ restore_grafana() {
 	# The minted token lets the boat datasource authenticate against the new data.
 	local token
 	token="$($SUDO grep -E '^INFLUXDB_ADMIN_TOKEN=' "/etc/container-apps/$INFLUX_PKG/env" 2>/dev/null | cut -d= -f2-)"
+	[[ -n "$token" ]] || {
+		warn "Could not read the InfluxDB token from /etc/container-apps/$INFLUX_PKG/env — skipping dashboard import. You can redo it manually later; your data is still available via HaLOS' built-in marine dashboards."
+		note "Grafana: import skipped — InfluxDB token missing."
+		return 0
+	}
 
 	ensure_pkg "$GRAFANA_PKG"
 	$SUDO systemctl start "$GRAFANA_PKG.service" 2>/dev/null || true

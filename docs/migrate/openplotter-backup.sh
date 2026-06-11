@@ -368,6 +368,9 @@ write_manifest() {
 # InfluxDB archive actually contains the boltdb (its core metadata file).
 verify_backup() {
 	info "Verifying backup integrity..."
+	# Flush the archives to disk first so the read-backs below validate
+	# persisted data, not the page cache.
+	sync
 	local ok=1
 
 	check_artifact() {
