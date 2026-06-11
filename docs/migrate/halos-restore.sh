@@ -30,9 +30,13 @@ readonly CA_ROOT=/var/lib/container-apps
 readonly SK_PKG=marine-signalk-server-container
 readonly INFLUX_PKG=marine-influxdb-container
 readonly GRAFANA_PKG=marine-grafana-container
-readonly INFLUX_IMG=influxdb:2.9.1
 readonly INFLUX_CONTAINER=influxdb
 readonly GRAFANA_CONTAINER=grafana
+
+# Image used for `influxd recovery` runs against the boat boltdb. Overridden
+# with whatever image the installed influxdb container actually runs, so the
+# recovery tooling always matches the server HaLOS ships.
+INFLUX_IMG=influxdb:2.9.1
 
 # --- output helpers ----------------------------------------------------------
 
@@ -48,7 +52,24 @@ SUDO=""
 REAL_USER=""
 USER_HOME=""
 SRC=""
+PENDING_RESTART=""
 declare -a SUMMARY=()
+
+# A restore step stops a service, swaps data, and starts it again. If the
+# script dies inside that window, restart the service so a failed restore
+# never leaves the system dark, and point at the rollback copies.
+on_exit() {
+	local rc=$?
+	if ((rc != 0)); then
+		if [[ -n "$PENDING_RESTART" ]]; then
+			warn "Restarting $PENDING_RESTART after the failed restore step..."
+			$SUDO systemctl start "$PENDING_RESTART" 2>/dev/null ||
+				warn "Could not restart $PENDING_RESTART — start it manually: sudo systemctl start $PENDING_RESTART"
+		fi
+		err "Restore did not complete. Any data directory already swapped keeps its fresh HaLOS copy beside it as *.halos-default; after fixing the reported problem it is safe to re-run this script."
+	fi
+	return $rc
+}
 
 usage() {
 	awk 'NR==1 {next} /^#/ {sub(/^# ?/, ""); print; next} {exit}' "$0"
@@ -173,6 +194,7 @@ restore_signalk() {
 	info "Restoring Signal K configuration..."
 
 	$SUDO systemctl stop "$SK_PKG.service" 2>/dev/null || true
+	PENDING_RESTART="$SK_PKG.service"
 	preserve_default "$target"
 	$SUDO mkdir -p "$target"
 	$SUDO tar -C "$target" -xf "$SRC/signalk.tar"
@@ -180,6 +202,7 @@ restore_signalk() {
 	$SUDO chown -R "$REAL_USER:$REAL_USER" "$target"
 
 	$SUDO systemctl start "$SK_PKG.service"
+	PENDING_RESTART=""
 	verify_signalk
 }
 
@@ -244,8 +267,21 @@ init_then_stop_influx() {
 		$SUDO systemctl start "$INFLUX_PKG.service"
 		wait_container_healthy "$INFLUX_CONTAINER" 60 || true
 	fi
+	# Run the recovery tooling with the same image as the installed server.
+	local img
+	img="$($SUDO docker inspect -f '{{.Config.Image}}' "$INFLUX_CONTAINER" 2>/dev/null || true)"
+	[[ -n "$img" ]] && INFLUX_IMG="$img"
 	$SUDO systemctl stop "$INFLUX_PKG.service" 2>/dev/null || true
+	PENDING_RESTART="$INFLUX_PKG.service"
 	$SUDO docker rm -f "$INFLUX_CONTAINER" >/dev/null 2>&1 || true
+	ensure_influx_image
+}
+
+ensure_influx_image() {
+	$SUDO docker image inspect "$INFLUX_IMG" >/dev/null 2>&1 && return 0
+	info "Pulling $INFLUX_IMG for the InfluxDB recovery tooling..."
+	$SUDO docker pull "$INFLUX_IMG" >/dev/null 2>&1 ||
+		die "InfluxDB image $INFLUX_IMG is not available locally and could not be pulled. Connect the device to the internet and re-run."
 }
 
 wait_container_healthy() {
@@ -258,7 +294,7 @@ wait_container_healthy() {
 }
 
 # Mint a fresh operator token from the swapped-in boltdb (server must be down).
-# Echoes: "<username>|<orgname>|<token>"
+# Echoes three lines: username, org name, token.
 mint_operator_token() {
 	local db="$1" user org out token
 	user="$(recovery_list "$db" user)"
@@ -269,15 +305,17 @@ mint_operator_token() {
 		--bolt-path /var/lib/influxdb2/influxd.bolt 2>/dev/null)"
 	token="$(printf '%s\n' "$out" | grep -oE '[A-Za-z0-9_-]{80,}={0,2}' | head -1)"
 	[[ -n "$token" ]] || die "Failed to mint an InfluxDB operator token from the boltdb."
-	printf '%s|%s|%s' "$user" "$org" "$token"
+	printf '%s\n%s\n%s\n' "$user" "$org" "$token"
 }
 
 # First data row's Name from `influxd recovery <kind> list` (server down).
+# The output is "<ID> <Name>"; the name is everything after the ID so names
+# containing spaces survive.
 recovery_list() {
 	local db="$1" kind="$2"
 	$SUDO docker run --rm -v "$db:/var/lib/influxdb2" "$INFLUX_IMG" \
 		influxd recovery "$kind" list --bolt-path /var/lib/influxdb2/influxd.bolt 2>/dev/null |
-		awk 'NR>1 && NF>=2 {print $2; exit}'
+		awk 'NR>1 && NF>=2 {sub(/^[^ \t]+[ \t]+/, ""); sub(/[ \t]+$/, ""); print; exit}'
 }
 
 iexec() { $SUDO docker exec "$INFLUX_CONTAINER" influx "$@"; }
@@ -300,17 +338,20 @@ restore_influxdb() {
 	mirror_default_ownership "$db"
 
 	info "Minting a fresh operator token from the boat database..."
-	local triple user org token
-	triple="$(mint_operator_token "$db")"
-	user="${triple%%|*}"
-	token="${triple##*|}"
-	org="${triple#*|}"
-	org="${org%|*}"
+	local creds user org token
+	creds="$(mint_operator_token "$db")"
+	{
+		read -r user
+		read -r org
+		read -r token
+	} <<<"$creds"
+	[[ -n "$user" && -n "$org" && -n "$token" ]] || die "Could not parse the minted InfluxDB credentials."
 
 	inject_influx_token "$token"
 
 	info "Starting InfluxDB with the boat data..."
 	$SUDO systemctl start "$INFLUX_PKG.service"
+	PENDING_RESTART=""
 	wait_container_healthy "$INFLUX_CONTAINER" 90 ||
 		die "InfluxDB did not become healthy. Boat data may be from a newer InfluxDB than HaLOS ships ($INFLUX_IMG). Default preserved at $db.halos-default. Check: sudo docker logs $INFLUX_CONTAINER"
 
@@ -349,9 +390,17 @@ align_to_marine() {
 	wait_influx_ready "$token"
 
 	local org_id buck
-	org_id="$(iexec org list --token "$token" 2>/dev/null | awk -v n="$org" 'NR>1 && $2==n {print $1; exit}')"
+	org_id="$(iexec org list --token "$token" --json 2>/dev/null |
+		ORG_NAME="$org" python3 -c '
+import json, os, sys
+try:
+    orgs = json.load(sys.stdin)
+except Exception:
+    orgs = []
+print(next((o["id"] for o in orgs if o.get("name") == os.environ["ORG_NAME"]), ""))
+')"
 	buck="$(select_telemetry_bucket "$org" "$token")"
-	local buck_id="${buck%%|*}" buck_name="${buck##*|}"
+	local buck_id="${buck%%$'\t'*}" buck_name="${buck#*$'\t'}"
 	[[ -n "$org_id" && -n "$buck_id" ]] || die "Could not resolve org/bucket ids for the rename."
 
 	if [[ "$org" != marine ]]; then
@@ -378,12 +427,23 @@ wait_influx_ready() {
 	die "InfluxDB is up but not answering authenticated queries with the minted token."
 }
 
-# Echo "<id>|<name>" of the telemetry bucket, prompting if more than one exists.
+# Echo "<id>\t<name>" of the telemetry bucket, prompting if more than one
+# exists. JSON output keeps bucket names with spaces intact.
 select_telemetry_bucket() {
 	local org="$1" token="$2"
 	local -a buckets=()
-	mapfile -t buckets < <(iexec bucket list --org "$org" --token "$token" 2>/dev/null |
-		awk 'NR>1 && $2 !~ /^_/ {print $1"|"$2}')
+	mapfile -t buckets < <(iexec bucket list --org "$org" --token "$token" --json 2>/dev/null |
+		python3 -c '
+import json, sys
+try:
+    rows = json.load(sys.stdin)
+except Exception:
+    rows = []
+for b in rows:
+    name = b.get("name", "")
+    if name and not name.startswith("_"):
+        print(b["id"] + "\t" + name)
+')
 	case "${#buckets[@]}" in
 	0) die "No data buckets found in the boat InfluxDB." ;;
 	1) printf '%s' "${buckets[0]}" ;;
@@ -391,7 +451,7 @@ select_telemetry_bucket() {
 		warn "Multiple buckets found — choose the main telemetry bucket to map to 'marine':" >&2
 		local i=1 b
 		for b in "${buckets[@]}"; do
-			printf '   %d) %s\n' "$i" "${b##*|}" >&2
+			printf '   %d) %s\n' "$i" "${b#*$'\t'}" >&2
 			((i++))
 		done
 		local choice
@@ -490,7 +550,7 @@ def call(method, path, payload):
 con = sqlite3.connect(db)
 con.row_factory = sqlite3.Row
 
-ds_ok = ds_fail = 0
+ds_ok = ds_fail = auth_fail = 0
 for row in con.execute("SELECT uid,name,type,access,database,json_data FROM data_source"):
     if (row["type"] or "") != "influxdb":
         continue
@@ -509,6 +569,8 @@ for row in con.execute("SELECT uid,name,type,access,database,json_data FROM data
     elif 200 <= st < 300:
         ds_ok += 1
     else:
+        if st in (401, 403):
+            auth_fail += 1
         ds_fail += 1
 
 dash_ok = dash_fail = 0
@@ -533,9 +595,14 @@ for row in rows:
     if 200 <= st < 300:
         dash_ok += 1
     else:
+        if st in (401, 403):
+            auth_fail += 1
         dash_fail += 1
 
 print(f"datasources: {ds_ok} ok, {ds_fail} failed; dashboards: {dash_ok} ok, {dash_fail} failed")
+if auth_fail:
+    print("note: Grafana rejected the default admin credentials — this HaLOS "
+          "Grafana does not accept admin:admin, so the import cannot proceed.")
 # Fail only if we could not import anything at all.
 raise SystemExit(0 if (ds_fail == 0 and dash_fail == 0) else 1)
 PY
@@ -566,6 +633,7 @@ main() {
 	done
 
 	resolve_privs
+	trap on_exit EXIT
 	locate_backup "$arg"
 	validate_manifest
 	require_marine_halos
