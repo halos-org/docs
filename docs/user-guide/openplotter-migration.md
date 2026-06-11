@@ -90,7 +90,7 @@ The scripts above handle these paths for you. This section is a reference for an
 |------|-------------------------------|-------|
 | Signal K | `~/.signalk` | `/var/lib/container-apps/marine-signalk-server-container/data/data` |
 | InfluxDB 2 | `/var/lib/influxdb` (bolt at `/var/lib/influxdb/influxd.bolt`, engine at `/var/lib/influxdb/engine`) | `/var/lib/container-apps/marine-influxdb-container/data/db` |
-| Grafana | `/var/lib/grafana/grafana.db` | `marine-grafana-container` (re-imported, see below) |
+| Grafana | `/var/lib/grafana/grafana.db` | `/var/lib/container-apps/marine-grafana-container/data/data/grafana.db` (re-imported, not copied — see below) |
 | OpenCPN | `~/.opencpn`, `~/.local/share/opencpn` | same paths in your HaLOS home directory |
 
 A few details worth knowing:
