@@ -95,6 +95,5 @@ The scripts above handle these paths for you. This section is a reference for an
 
 A few details worth knowing:
 
-- **InfluxDB path differs by install method.** The Debian package stores data in `/var/lib/influxdb`, while the InfluxDB Docker image HaLOS uses keeps it at `/var/lib/influxdb2` internally. The restore handles the translation; you only need the source path if you copy data by hand.
 - **Grafana is re-imported, not copied.** Rather than swapping the SQLite database into place, the restore reads your OpenPlotter `grafana.db` and re-creates its datasources and dashboards through the HaLOS Grafana API. This is why dashboard import is best-effort across Grafana versions.
 - **OpenCPN stays in the home directory.** Its config and plugin data restore to the same `~/.opencpn` and `~/.local/share/opencpn` paths on HaLOS.
