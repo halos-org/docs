@@ -408,7 +408,7 @@ smoke_query() {
 	local token="$1" out
 	out="$(iexec query 'from(bucket:"marine") |> range(start:-520w) |> first()' \
 		--org marine --token "$token" 2>/dev/null | grep -c _value || true)"
-	if (($(printf '%s' "${out:-0}") > 0)); then
+	if (( ${out:-0} > 0 )); then
 		info "Smoke test passed: historical telemetry is queryable in the 'marine' bucket."
 	else
 		warn "Smoke test returned no rows — the bucket may be empty or queries need a wider range."
@@ -486,7 +486,7 @@ con = sqlite3.connect(db)
 con.row_factory = sqlite3.Row
 
 ds_ok = ds_fail = 0
-for row in con.execute("SELECT uid,name,type,access,url,database,json_data FROM data_source"):
+for row in con.execute("SELECT uid,name,type,access,database,json_data FROM data_source"):
     if (row["type"] or "") != "influxdb":
         continue
     jd = json.loads(row["json_data"] or "{}")
