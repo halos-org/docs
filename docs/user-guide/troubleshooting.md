@@ -183,10 +183,10 @@ sudo systemctl restart avahi-daemon
     sudo systemctl status <service-name>.service
     ```
 
-2. Check Docker:
+2. Check the container state and logs (container apps log to the journal):
     ```bash
     sudo docker ps -a
-    sudo docker logs <container-name>
+    sudo journalctl -u <service-name>.service -e
     ```
 
 3. Check disk space — containers need room for images:
