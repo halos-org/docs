@@ -90,10 +90,9 @@ The scripts above handle these paths for you. This section is a reference for an
 |------|-------------------------------|-------|
 | Signal K | `~/.signalk` | `/var/lib/container-apps/marine-signalk-server-container/data/data` |
 | InfluxDB 2 | `/var/lib/influxdb` (bolt at `/var/lib/influxdb/influxd.bolt`, engine at `/var/lib/influxdb/engine`) | `/var/lib/container-apps/marine-influxdb-container/data/db` |
-| Grafana | `/var/lib/grafana/grafana.db` | `/var/lib/container-apps/marine-grafana-container/data/data/grafana.db` (re-imported, not copied — see below) |
+| Grafana | `/var/lib/grafana/grafana.db` | `/var/lib/container-apps/marine-grafana-container/data/data/grafana.db` |
 | OpenCPN | `~/.opencpn`, `~/.local/share/opencpn` | same paths in your HaLOS home directory |
 
-A few details worth knowing:
+One detail worth knowing:
 
-- **Grafana is re-imported, not copied.** Rather than swapping the SQLite database into place, the restore reads your OpenPlotter `grafana.db` and re-creates its datasources and dashboards through the HaLOS Grafana API. This is why dashboard import is best-effort across Grafana versions.
 - **OpenCPN stays in the home directory.** Its config and plugin data restore to the same `~/.opencpn` and `~/.local/share/opencpn` paths on HaLOS.
