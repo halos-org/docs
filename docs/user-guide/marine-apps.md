@@ -35,6 +35,9 @@ Signal K is typically the first marine app to set up. Connect your NMEA data sou
 
 [InfluxDB](https://www.influxdata.com/) is a time-series database optimized for sensor data. In the marine context, it stores historical data from Signal K — wind speed, boat speed, depth, engine parameters, battery voltage, and any other metrics your instruments produce.
 
+!!! note "Default login"
+    InfluxDB has its own login and is **not** behind the HaLOS single sign-on — the default admin account (`admin` / `halos-default`) is the only thing protecting it. Change the password after first boot from the InfluxDB app configuration (Cockpit → Container Apps → InfluxDB → **Admin Password**, 8–72 characters); HaLOS applies it to InfluxDB the next time the app starts. The admin API token is generated randomly on first boot, so Grafana and Signal K keep working without any token changes.
+
 Use InfluxDB to:
 
 - Record long-term trends (fuel consumption over a season, battery health)
