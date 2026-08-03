@@ -221,6 +221,19 @@ verify_signalk() {
 		fi
 		sleep 2
 	done
+	# 60s covers a start; it does not cover a provisioning run, which installs the
+	# curated plugin set before the app may start and has no deadline of its own.
+	# Reporting that as a failure would send the operator debugging a working device.
+	local state
+	state="$($SUDO systemctl is-active "$SK_PKG-provision.service" 2>/dev/null || true)"
+	if [[ "$state" == "activating" || "$state" == "active" ]]; then
+		info "Signal K is installing its plugin set before starting; on a slow link"
+		info "this takes several minutes. Follow it with:"
+		info "  sudo journalctl -fu $SK_PKG-provision.service"
+		note "Signal K: restored, provisioning still running."
+		return 0
+	fi
+
 	warn "Signal K did not respond on :3000 within 60s. Check: sudo journalctl -u $SK_PKG.service"
 	warn "The previous HaLOS data is preserved at $CA_ROOT/$SK_PKG/data/data.halos-default for rollback."
 	note "Signal K: restored but did not come up — needs manual check."
