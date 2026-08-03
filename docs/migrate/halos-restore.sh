@@ -63,7 +63,7 @@ on_exit() {
 	if ((rc != 0)); then
 		if [[ -n "$PENDING_RESTART" ]]; then
 			warn "Restarting $PENDING_RESTART after the failed restore step..."
-			$SUDO systemctl start "$PENDING_RESTART" 2>/dev/null ||
+			$SUDO systemctl start --no-block "$PENDING_RESTART" 2>/dev/null ||
 				warn "Could not restart $PENDING_RESTART — start it manually: sudo systemctl start $PENDING_RESTART"
 		fi
 		err "Restore did not complete. Any data directory already swapped keeps its fresh HaLOS copy beside it as *.halos-default; after fixing the reported problem it is safe to re-run this script."
@@ -201,7 +201,10 @@ restore_signalk() {
 	# The host data dir is owned by the invoking user (pi); match it.
 	$SUDO chown -R "$REAL_USER:$REAL_USER" "$target"
 
-	$SUDO systemctl start "$SK_PKG.service"
+	# --no-block: Signal K is ordered behind a provisioning one-shot that has no
+	# start timeout, so a blocking start hangs the restore on a device that has
+	# not provisioned since its last upgrade. verify_signalk polls for readiness.
+	$SUDO systemctl start --no-block "$SK_PKG.service"
 	PENDING_RESTART=""
 	verify_signalk
 }
