@@ -63,7 +63,7 @@ on_exit() {
 	if ((rc != 0)); then
 		if [[ -n "$PENDING_RESTART" ]]; then
 			warn "Restarting $PENDING_RESTART after the failed restore step..."
-			$SUDO systemctl start "$PENDING_RESTART" 2>/dev/null ||
+			$SUDO systemctl start --no-block "$PENDING_RESTART" 2>/dev/null ||
 				warn "Could not restart $PENDING_RESTART — start it manually: sudo systemctl start $PENDING_RESTART"
 		fi
 		err "Restore did not complete. Any data directory already swapped keeps its fresh HaLOS copy beside it as *.halos-default; after fixing the reported problem it is safe to re-run this script."
@@ -201,7 +201,10 @@ restore_signalk() {
 	# The host data dir is owned by the invoking user (pi); match it.
 	$SUDO chown -R "$REAL_USER:$REAL_USER" "$target"
 
-	$SUDO systemctl start "$SK_PKG.service"
+	# --no-block: Signal K is ordered behind a provisioning one-shot that has no
+	# start timeout, so a blocking start hangs the restore on a device that has
+	# not provisioned since its last upgrade. verify_signalk polls for readiness.
+	$SUDO systemctl start --no-block "$SK_PKG.service"
 	PENDING_RESTART=""
 	verify_signalk
 }
@@ -218,6 +221,19 @@ verify_signalk() {
 		fi
 		sleep 2
 	done
+	# 60s covers a start; it does not cover a provisioning run, which installs the
+	# curated plugin set before the app may start and has no deadline of its own.
+	# Reporting that as a failure would send the operator debugging a working device.
+	local state
+	state="$($SUDO systemctl is-active "$SK_PKG-provision.service" 2>/dev/null || true)"
+	if [[ "$state" == "activating" || "$state" == "active" ]]; then
+		info "Signal K is installing its plugin set before starting; on a slow link"
+		info "this takes several minutes. Follow it with:"
+		info "  sudo journalctl -fu $SK_PKG-provision.service"
+		note "Signal K: restored, provisioning still running."
+		return 0
+	fi
+
 	warn "Signal K did not respond on :3000 within 60s. Check: sudo journalctl -u $SK_PKG.service"
 	warn "The previous HaLOS data is preserved at $CA_ROOT/$SK_PKG/data/data.halos-default for rollback."
 	note "Signal K: restored but did not come up — needs manual check."
