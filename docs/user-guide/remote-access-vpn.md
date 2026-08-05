@@ -4,7 +4,7 @@ To reach HaLOS from outside the LAN, the device's canonical hostname must resolv
 
 Enabling remote access has two parts:
 
-1. Change the canonical from `${hostname}.local` to a fully-qualified domain name (FQDN, a name with at least one dot in it, like `halos.example`) that resolves on your LAN.
+1. Change the canonical from `${hostname}.local` to a fully-qualified domain name (FQDN, a name with at least one dot in it, like `halos.example`) that resolves on your LAN. The canonical is the first line of `/etc/halos/hostnames.conf`.
 2. Make the same FQDN resolve from the remote network.
 
 You'll also need a VPN connecting the remote network to the device's LAN. Configuring the VPN itself is out of scope for this page.
