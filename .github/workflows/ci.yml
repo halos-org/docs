@@ -25,3 +25,21 @@ jobs:
           for f in docs/migrate/*.sh; do
             cmp "$f" "site/migrate/$(basename "$f")"
           done
+      # Anchors come from heading text, so an edited heading breaks every link
+      # pointing at it, including links on pages nobody touched.
+      #
+      # mkdocs has validation.links.anchors and it is not enabled here, which
+      # looks like the cheaper option until you check what it covers. It reads
+      # source markdown; this reads built HTML. Measured on this site: a raw
+      # <a href> and a root-absolute link, both pointing at headings that do
+      # not exist, pass mkdocs and fail here.
+      #
+      # print_page/ is the single-page export from mkdocs-print-site-plugin. It
+      # rewrites every fragment into ids of its own, so its anchors are not the
+      # site's. All 690 links the exclusion drops are page-local fragments of
+      # that generated page; no authored link is silenced.
+      #
+      # Last, because it is the step most likely to go red and a job stops at
+      # its first failure.
+      - name: Check anchors
+        run: uv run check-anchors site --exclude 'print_page/*'
