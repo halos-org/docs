@@ -8,4 +8,5 @@ dependencies = [
     "mkdocs-with-pdf>=0.9",
     "click<8.3",
     "mkdocs-print-site-plugin>=2.8",
+    "halos-docs-tools @ git+https://github.com/halos-org/docs-tools@v0.1.0",
 ]
