@@ -35,6 +35,36 @@ This lets you reach the device without Ethernet. The hotspot has no internet of 
 
 When the device joins a WiFi network, it keeps the hotspot running and acts as a client at the same time (concurrent AP and client). To do this it moves the hotspot onto the client network's channel, so a device connected to the hotspot may briefly disconnect and reconnect on its own. For the full first-time walkthrough, see [First Boot — WiFi access point](../getting-started/first-boot.md#wifi-access-point-headless-images-and-the-ap-desktop-variant).
 
+### Serving more access point clients
+
+The WiFi chip (Cypress CYW43455) has two firmware variants, and the system chooses between them with `update-alternatives`. The default `standard` variant accepts about 7 access point clients. The `minimal` variant is tuned for access point use and accepts about 19.
+
+Use the `minimal` variant on any device whose hotspot is in real use. The client count is the smaller reason: in practice the `standard` variant seizes up with only a few clients connected, and then admits none at all.
+
+Switch the variant:
+
+```bash
+sudo update-alternatives --config cyfmac43455-sdio.bin
+```
+
+Select the `cyfmac43455-sdio-minimal.bin` entry, then reboot. `update-alternatives` records the choice, so later firmware package updates keep it.
+
+The `minimal` variant frees the chip memory for those extra client slots by dropping features:
+
+- Automatic channel selection.
+- DFS radar detection, so the 5 GHz channels that require it become unavailable.
+- 802.11k/v/r roaming assistance and antenna diversity.
+
+It is also an older firmware release than the `standard` variant (7.45.241 from 2021, against 7.45.265 from 2023).
+
+If the hotspot does not come up after the switch, set a fixed channel on it, because the `minimal` variant cannot pick one on its own:
+
+```bash
+sudo nmcli connection modify Halos-AP wifi.band bg wifi.channel 6
+```
+
+To go back to the default firmware, run the same command and select the `standard` entry, or run `sudo update-alternatives --auto cyfmac43455-sdio.bin`.
+
 ## Ethernet
 
 Ethernet works out of the box with DHCP. The device obtains an IP address automatically from your network's DHCP server.
