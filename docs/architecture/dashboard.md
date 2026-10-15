@@ -66,7 +66,7 @@ First-boot detection checks two conditions: the state file shows `first_boot_com
 
 ## Branding
 
-The `halos-homarr-branding` package provides theming configuration at `/etc/halas-homarr-branding/branding.toml`:
+The `halos-homarr-branding` package provides theming configuration at `/etc/halos-homarr-branding/branding.toml`:
 
 ```toml
 [identity]

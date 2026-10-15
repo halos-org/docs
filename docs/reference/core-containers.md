@@ -9,7 +9,7 @@ The core containers provide the foundational web infrastructure for HaLOS. They 
 | **Traefik** | `traefik:v3.6` | Reverse proxy, TLS termination, routing |
 | **Authelia** | `authelia/authelia:4.39` | SSO identity provider (ForwardAuth + OIDC) |
 | **Authelia Valkey** | `valkey/valkey:9.0-alpine` | Session cache for Authelia |
-| **Homarr** | `ghcr.io/homarr-labs/homarr:v1.51` | Dashboard landing page |
+| **Homarr** | `ghcr.io/homarr-labs/homarr:v2.5.2` | Dashboard landing page |
 
 All containers are managed by a single systemd service: `halos-core-containers.service`.
 
@@ -101,8 +101,8 @@ Dashboard application that serves as the main landing page at `https://halos.loc
 
 | Path | Purpose |
 |------|---------|
-| `/var/lib/container-apps/halos-core-containers/homarr/data/` | Persistent Homarr data (boards, settings) |
-| `/etc/halas-homarr-branding/branding.toml` | HaLOS theming (from `halos-homarr-branding` package) |
+| `/var/lib/container-apps/halos-core-containers/data/homarr/data/` | Persistent Homarr data (boards, settings) |
+| `/etc/halos-homarr-branding/branding.toml` | HaLOS theming (from `halos-homarr-branding` package) |
 
 ### SSO Integration
 
