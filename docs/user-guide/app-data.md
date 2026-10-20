@@ -1,6 +1,6 @@
 # App Data and Migration
 
-Every container app in HaLOS stores its persistent data on the host filesystem in a predictable location. This page explains where that data lives and how to migrate or back it up.
+Every container app in HaLOS stores its persistent data on the host filesystem in a predictable location. This page explains where that data lives, how to migrate or back it up, and how to customise an app's Compose settings.
 
 ## Where app data is stored
 
@@ -103,3 +103,43 @@ sudo tar xzf backup.tar.gz -C /
 # Start the app
 sudo systemctl start <package-name>
 ```
+
+## Customising an app with compose.d
+
+Each container app is defined by a `docker-compose.yml` in `/var/lib/container-apps/<package-name>/`. Do not edit that file: the next package upgrade overwrites it. To change an app's Compose settings, put your own Compose file in the app's `compose.d/` directory:
+
+```
+/var/lib/container-apps/<package-name>/compose.d/
+```
+
+Files ending in `.yml` or `.yaml` are applied in byte order of filename, after `docker-compose.yml` and, for apps with a web address, after the generated routing labels. A file in `compose.d/` can therefore override any setting of the app. Package upgrades and `apt purge` leave these files in place.
+
+The files merge with the app's definition by Docker Compose's [merge rules](https://docs.docker.com/reference/compose-file/merge/). Lists such as `group_add` add to the existing entries. To clear a setting, tag it with `!reset`; to replace it entirely, tag it with `!override`. HaLOS ships Compose 2.26, which supports both.
+
+### Example: adding a supplementary group
+
+To give the process in one of the app's services an extra group, create for example `compose.d/10-groups.yml`:
+
+```yaml
+services:
+  <service>:
+    group_add:
+      - "<gid>"
+```
+
+`<service>` is the service name from the app's `docker-compose.yml`. Use the numeric group ID from the host (`getent group <group>` shows it); a group name is looked up inside the container, where it may not exist.
+
+Relative paths in a `compose.d/` file resolve against the app directory, `/var/lib/container-apps/<package-name>/`. A top-level `name:` in a `compose.d/` file has no effect, because the service sets the project name itself.
+
+### Applying the change
+
+Changes take effect when the app restarts. Check the result first, then restart:
+
+```bash
+sudo /var/lib/container-apps/<package-name>/compose check
+sudo systemctl restart <package-name>
+```
+
+`compose check` validates the app's Compose configuration with the same environment the service uses, and lists the active `compose.d/` files. It needs `sudo` because the app's `runtime.env` is readable only by root.
+
+If a `compose.d/` file makes the configuration invalid, the app does not start. See [App fails to start after adding a compose.d file](troubleshooting.md#app-fails-to-start-after-adding-a-composed-file).

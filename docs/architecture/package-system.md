@@ -20,6 +20,8 @@ Each container app package contains:
 ```
 /var/lib/container-apps/{app-name}/
 ├── docker-compose.yml          # Docker Compose definition
+├── compose                     # Wrapper that runs docker compose with the overrides
+├── compose.d/                  # Local Compose overrides (empty when installed)
 ├── runtime.env                 # Environment variables
 └── icon.png                    # Application icon
 
@@ -32,7 +34,9 @@ Each container app package contains:
 
 The package is intentionally lightweight — it does **not** contain the Docker image itself. The actual container image is pulled from the registry when the service starts for the first time. This keeps packages small (a few kilobytes) and ensures you always get the exact image version specified in the compose file.
 
-The systemd service runs `docker compose up -d` on start and `docker compose down` on stop.
+The systemd service runs Compose through the `compose` wrapper, which passes `docker-compose.yml`, then the generated routing-labels file for routed apps, then any files in `compose.d/`. Before starting, the service runs `prestart.sh` and `compose config --quiet`, so an invalid project fails the start. It then runs `compose up` in the foreground, and on stop runs `docker compose -p <project> down --remove-orphans`. The stop uses only the project name, so it does not depend on the files in `compose.d/`.
+
+`compose.d/` holds local overrides written by the administrator. See [App Data and Migration — Customising an app with compose.d](../user-guide/app-data.md#customising-an-app-with-composed).
 
 ## App Definition Format
 
@@ -177,10 +181,10 @@ apt remove marine-grafana-container
 
 ```
 apt upgrade
-  → dpkg extracts updated files
+  → dpkg extracts updated files, overwriting docker-compose.yml
   → systemd restarts the service
     → docker compose pulls new image (only if upstream version changed) and recreates container
-  → Persistent data in /var/lib/container-apps/{app}/ is preserved
+  → compose.d/ overrides and persistent data in /var/lib/container-apps/{app}/ are preserved
 ```
 
 ## Version Management
