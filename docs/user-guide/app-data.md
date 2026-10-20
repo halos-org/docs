@@ -10,7 +10,7 @@ All container apps store data under:
 /var/lib/container-apps/<package-name>/data/
 ```
 
-Each app gets its own isolated directory. Data persists across container restarts and app updates. Removing an app with `apt remove` preserves the data; `apt purge` deletes it.
+Each app gets its own isolated directory. Data persists across container restarts and app updates. Removing an app with `apt remove` or `apt purge` preserves the data. `apt purge` deletes only the app's configuration in `/etc/container-apps/<package-name>/`; for a clean reinstall, delete `/var/lib/container-apps/<package-name>/` by hand after purging.
 
 ### Finding an app's data path
 
@@ -140,6 +140,6 @@ sudo /var/lib/container-apps/<package-name>/compose check
 sudo systemctl restart <package-name>
 ```
 
-`compose check` validates the app's Compose configuration with the same environment the service uses, and lists the active `compose.d/` files. It needs `sudo` because the app's `runtime.env` is readable only by root.
+`compose check` validates the app's Compose configuration with the same environment the service uses, and lists the active `compose.d/` files. Part of that environment is generated when the service starts, so run the check while the app is running or after it has started at least once since boot. It needs `sudo` because the app's `runtime.env` is readable only by root.
 
 If a `compose.d/` file makes the configuration invalid, the app does not start. See [App fails to start after adding a compose.d file](troubleshooting.md#app-fails-to-start-after-adding-a-composed-file).

@@ -163,7 +163,7 @@ settings:
     description: "Application timezone"
 ```
 
-These become environment variables in `runtime.env`, editable through the Cockpit configuration UI.
+Their defaults land in `/etc/container-apps/<package-name>/env.defaults` and local values in `/etc/container-apps/<package-name>/env`, editable through the Cockpit configuration UI. The service reads both as environment variables.
 
 ## Step 4: Add an Icon
 
