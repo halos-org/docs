@@ -33,7 +33,7 @@ A full command-line terminal in the browser. Useful for running commands without
 
 ### Services
 
-View and manage systemd services. You can start, stop, restart, and enable/disable services. Container apps run as systemd services (e.g., `signalk-server-container.service`), so you can manage them here.
+View and manage systemd services. You can start, stop, restart, and enable/disable services. Container apps run as systemd services (e.g., `marine-signalk-server-container.service`), so you can manage them here.
 
 ### Logs
 

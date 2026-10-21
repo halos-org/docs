@@ -38,12 +38,12 @@ The store shows apps from all configured stores. The Marine variant adds a dedic
 
 ## Managing installed apps
 
-**Start/Stop/Restart**: Open Cockpit → Services. Find the service (named `<app-name>-container.service`) and use the controls to start, stop, or restart it.
+**Start/Stop/Restart**: Open Cockpit → Services. Find the service (named `<package-name>.service`) and use the controls to start, stop, or restart it.
 
 **View logs**: Open Cockpit → Services → select the service → Logs tab. Or use the terminal:
 
 ```bash
-sudo journalctl -u <app-name>-container.service -f
+sudo journalctl -u <package-name>.service -f
 ```
 
 **Check container status**: Via the Cockpit terminal:

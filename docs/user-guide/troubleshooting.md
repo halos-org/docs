@@ -199,6 +199,33 @@ sudo systemctl restart avahi-daemon
     sudo systemctl status docker
     ```
 
+## App fails to start after adding a compose.d file
+
+**Symptom**: After you add or change a file in an app's `compose.d/` directory, the app's service fails to start.
+
+**Cause**: The service validates the app's Compose configuration, including every `compose.d/` file, before it starts the containers. An invalid file fails the start.
+
+**Solution**:
+
+1. Find the error in the service log:
+    ```bash
+    sudo journalctl -u <package-name> -e
+    ```
+    A `compose.d fragments: ...` line lists the active files, followed by Compose's error. The error names the service or the YAML line but not the file, so check each listed file.
+
+2. Fix or remove the file, then check the configuration:
+    ```bash
+    sudo /var/lib/container-apps/<package-name>/compose check
+    ```
+
+3. Clear the failed state and start the service:
+    ```bash
+    sudo systemctl reset-failed <package-name>
+    sudo systemctl start <package-name>
+    ```
+
+See [Customising an app with compose.d](app-data.md#customising-an-app-with-composed) for how these files are applied.
+
 ## Getting help
 
 - **[GitHub Discussions](https://github.com/halos-org/halos-distro/discussions)** — Ask questions and share ideas with the community

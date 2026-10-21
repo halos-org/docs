@@ -149,7 +149,7 @@ git commit --no-verify -m "WIP: message"
 
 1. CI builds the Debian package
 2. Creates a pre-release tag (`v{version}+{N}_pre`)
-3. Publishes `.deb` to `apt.hatlabs.fi` unstable channel
+3. Publishes `.deb` to the unstable channel of `apt.halos.fi` (`apt.hatlabs.fi` for repos in the `hatlabs` organisation)
 4. Creates a draft GitHub release
 
 ### Publishing Stable Releases
@@ -157,7 +157,7 @@ git commit --no-verify -m "WIP: message"
 1. Test the unstable package on a device
 2. Publish the draft release in GitHub UI
 3. CI copies the `.deb` to the stable release
-4. CI publishes to `apt.hatlabs.fi` stable channel
+4. CI publishes to the stable channel of the same repository
 
 ## Development Environments
 
